@@ -1,24 +1,77 @@
 # 09. Explainable AI ★★★★
 
-![Cover](./assets/01_cover.png)
+![Cover](assets/01_cover.svg)
 
-> **Quick description:** Train a nonlinear classifier and inspect held-out permutation importance and probability behavior.
+> **Quick description:** Train a nonlinear classifier on real diagnostic data and explain its held-out behavior with permutation importance.
 
 ## Why this project matters
-Professor-readable AI Engineering evidence using **real data**, explicit processing, executable code, empirical or reproducible evaluation, and a scientific-style report. Core skills: **XAI, permutation importance, random forest, interpretability**.
+This AI Engineering project focuses on a central problem in applied machine learning: a model can perform extremely well while still being difficult to interpret.
+
+The experiment uses the real **Wisconsin Diagnostic Breast Cancer dataset**, trains a nonlinear Random Forest classifier, evaluates held-out discrimination with ROC-AUC, and then applies **permutation importance** to identify which measured features the fitted model depends on most.
 
 ## Dataset
-- **Dataset:** Wisconsin Diagnostic Breast Cancer dataset
-- **Reference:** https://scikit-learn.org/stable/modules/generated/sklearn.datasets.load_breast_cancer.html
-- See [`DATA.md`](DATA.md).
+- **Dataset:** Wisconsin Diagnostic Breast Cancer
+- **Source:** scikit-learn `load_breast_cancer`
+- **Samples:** 569
+- **Features:** 30 numerical diagnostic measurements
+- **Split:** stratified 75% training / 25% held out
+- **Data provenance and usage:** [DATA.md](DATA.md)
 
-## Processing pipeline
-![Pipeline](./assets/02_data_pipeline.png)
+## Explainability pipeline
+![Explainability pipeline](assets/02_data_pipeline.svg)
 
-## Evidence gallery
-| Data / model | Evaluation / results |
-|---|---|
-| ![Model](./assets/03_data_or_model.png) | ![Results](./assets/04_evaluation_or_results.png) |
+### Processing steps
+1. Load the real WDBC feature matrix and labels.
+2. Create a stratified 75/25 train-test split.
+3. Fit a **Random Forest with 450 trees** on the training data.
+4. Generate held-out class probabilities.
+5. Compute ROC-AUC on the held-out set.
+6. Run permutation importance on the held-out features with **16 repeats per feature**.
+7. Rank features by their mean effect on the classifier's held-out score.
+
+## Held-out permutation importance
+![Held-out permutation importance](assets/03_data_or_model.svg)
+
+The strongest measured permutation effects in this run were:
+
+| Feature | Mean permutation importance |
+|---|---:|
+| worst texture | 0.00393 |
+| worst smoothness | 0.00219 |
+| worst concavity | 0.00087 |
+| mean concave points | 0.00087 |
+| worst concave points | 0.00044 |
+
+Permutation importance answers a specific question:
+
+> How much does the fitted model's held-out score deteriorate when one feature is randomly shuffled?
+
+A high value means the fitted model depends more strongly on information carried by that feature. It does **not** establish that the feature causes the outcome.
+
+## Model discrimination and interpretation
+![Model discrimination and interpretation](assets/04_evaluation_or_results.svg)
+
+Generated metrics from the included experiment:
+
+```json
+{
+  "roc_auc": 0.9945492662473795,
+  "top_features": [
+    ["worst texture", 0.003933566433566425],
+    ["worst smoothness", 0.0021853146853146807],
+    ["worst concavity", 0.0008741258741258723],
+    ["mean concave points", 0.0008741258741258723],
+    ["worst concave points", 0.00043706293706293614]
+  ]
+}
+```
+
+### Interpretation
+- **ROC-AUC = 0.9945** indicates extremely strong held-out ranking discrimination in this split.
+- The largest permutation effects are concentrated among texture, smoothness, concavity, and concave-point measurements.
+- Several other features have near-zero permutation importance in this fitted model.
+- Near-zero permutation importance does not necessarily mean a feature is intrinsically useless. Correlated predictors can substitute for one another, reducing the measured effect of shuffling any single feature.
+- This analysis provides a **global model-dependence explanation**, not a local explanation for one individual prediction.
 
 ## Reproduce
 ```bash
@@ -28,60 +81,21 @@ pip install -r requirements.txt
 python src/run_experiment.py
 ```
 
-## Generated metrics
-```json
-{
-  "roc_auc": 0.9945492662473795,
-  "top_features": [
-    [
-      "worst texture",
-      0.003933566433566425
-    ],
-    [
-      "worst smoothness",
-      0.0021853146853146807
-    ],
-    [
-      "worst concavity",
-      0.0008741258741258723
-    ],
-    [
-      "mean concave points",
-      0.0008741258741258723
-    ],
-    [
-      "worst concave points",
-      0.00043706293706293614
-    ],
-    [
-      "worst symmetry",
-      0.0
-    ],
-    [
-      "worst compactness",
-      0.0
-    ],
-    [
-      "concave points error",
-      0.0
-    ],
-    [
-      "symmetry error",
-      0.0
-    ],
-    [
-      "fractal dimension error",
-      0.0
-    ]
-  ]
-}
-```
+Metrics are written to `results/metrics.json`.
 
-## Documentation
-[`paper/paper.md`](paper/paper.md) · [`PORTFOLIO.md`](PORTFOLIO.md) · [`REPRODUCIBILITY.md`](REPRODUCIBILITY.md) · [`ETHICS.md`](ETHICS.md) · [`CITATION.cff`](CITATION.cff)
+## Research documentation
+- [Scientific-style technical report](paper/paper.md)
+- [Website-ready portfolio entry](PORTFOLIO.md)
+- [Data provenance](DATA.md)
+- [Reproducibility notes](REPRODUCIBILITY.md)
+- [Ethics and responsible use](ETHICS.md)
+- [Citation metadata](CITATION.cff)
 
 ## Difficulty
-**★★★★**
+**★★★★ — advanced**
 
-## Integrity
-This is a research portfolio report, not a peer-reviewed publication. Numerical claims should match `results/metrics.json` generated by the included code.
+## Academic integrity
+This repository is a research portfolio artifact, not a peer-reviewed publication. Reported metrics and feature rankings are generated by the included code on the stated real dataset.
+
+## Stronger research extension
+A stronger version would add confidence intervals across random seeds, compare permutation importance with SHAP and partial-dependence methods, inspect feature correlation and grouped importance, evaluate calibration, add local explanations for individual predictions, and test explanation stability under retraining.
