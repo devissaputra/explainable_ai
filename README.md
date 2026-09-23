@@ -86,15 +86,12 @@ pytest
 
 The CI smoke test uses fewer permutation repeats for speed but exercises the same ROC-AUC-scored path.
 
-## Engineering details
+## Reading the importance scores
 
-- import-safe experiment module
-- explanation scoring explicitly set to `roc_auc`
-- held-out-only feature permutation
-- mean and standard deviation retained
-- behavioural tests and GitHub Actions
-- generated plots separated from curated SVG assets
+The ranking is useful only in the context of this fitted model and this test set. Correlated measurements can substitute for one another, so a small permutation score does not mean a feature is unimportant in the underlying domain. Likewise, a large score is evidence of model dependence, not biological causation.
 
-## Limits
+That is why the standard deviation is kept beside each mean importance instead of presenting a single ordered list as if it were definitive.
 
-This is a small benchmark and one model family. A stronger XAI study would add repeated splits, grouped/correlated-feature importance, SHAP or conditional importance as a comparison, stability analysis, calibration, and external data.
+## What would strengthen the explanation study
+
+I would repeat the analysis across several splits, group correlated variables, compare permutation importance with SHAP or conditional importance, test ranking stability, inspect calibration, and validate the explanation behavior on external data.
