@@ -1,19 +1,9 @@
-# Portfolio Summary
+# Explainable AI with Held-Out Permutation Importance
 
-## Explainable AI with Permutation Importance
+**Focus:** aligning the explanation metric with the evaluation metric.
 
-I train a 450-tree Random Forest on the Wisconsin Diagnostic Breast Cancer dataset, then use repeated permutation importance on held-out data to inspect which features the fitted model depends on.
+A Random Forest on the Wisconsin Diagnostic Breast Cancer benchmark reaches held-out ROC-AUC 0.9945. Permutation importance is computed on the held-out set using `scoring="roc_auc"`, so each importance value directly measures how much ROC-AUC falls when a feature is shuffled.
 
-### Images
+The repository retains both mean importance and standard deviation across 16 repeats. It also makes the interpretation boundary explicit: permutation importance measures fitted-model dependence, not biological causality, and correlated features can substitute for one another.
 
-![Project overview](assets/01_cover.svg)
-
-![Explainability pipeline](assets/02_data_pipeline.svg)
-
-![Permutation importance](assets/03_data_or_model.svg)
-
-![Model discrimination](assets/04_evaluation_or_results.svg)
-
-**Key result:** held-out ROC-AUC was 0.9945. The largest measured permutation effects came from worst texture and worst smoothness.
-
-The importance values describe model dependence, not causal effects.
+The experiment is import-safe, reproducible, behaviorally tested, and checked by GitHub Actions.

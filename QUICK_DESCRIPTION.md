@@ -1,6 +1,5 @@
 # Quick Description
 
-I train a 450-tree Random Forest on the Wisconsin Diagnostic Breast Cancer dataset and use repeated permutation importance on held-out data to see which features the fitted model depends on most.
+A held-out permutation-importance experiment where the explanation metric is explicitly ROC-AUC, matching the classifier's evaluation metric. Importance means and variability across 16 shuffles are retained.
 
-**Dataset:** Wisconsin Diagnostic Breast Cancer  
-**Main ideas:** explainable AI, permutation importance, Random Forest, ROC-AUC
+**Main ideas:** explainable AI, permutation importance, ROC-AUC, held-out explanations, correlated-feature caveats
