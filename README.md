@@ -1,62 +1,74 @@
-# Explainable AI with Permutation Importance
+# Explainable AI with Held-Out Permutation Importance
+
+[![CI](https://github.com/devissaputra/explainable_ai/actions/workflows/ci.yml/badge.svg)](https://github.com/devissaputra/explainable_ai/actions/workflows/ci.yml)
 
 ![Project overview](assets/01_cover.svg)
 
-I built this project to answer a question that comes after model training: once a nonlinear classifier performs well, how can I inspect what it is relying on?
+A compact explainability study built around a simple rule:
 
-The experiment uses a Random Forest on the Wisconsin Diagnostic Breast Cancer dataset and measures feature importance by repeatedly shuffling one feature at a time on held-out data.
+> **The explanation metric should match the performance metric being explained.**
+
+The classifier is evaluated with ROC-AUC, so permutation importance is also computed using **ROC-AUC loss under feature shuffling**, not the estimator's default accuracy score.
 
 ## Data and model
 
-I use:
+- Wisconsin Diagnostic Breast Cancer benchmark
+- 569 observations
+- 30 numerical features
+- stratified 75/25 train/test split
+- Random Forest with 450 trees
+- seed 42
 
-- 569 samples;
-- 30 numerical features;
-- a stratified 75/25 train/test split;
-- a Random Forest with 450 trees;
-- random state 42.
+All feature importance is computed on the held-out test set.
 
-The model's held-out class probabilities are evaluated with ROC-AUC.
-
-## How the explanation works
+## Explanation method
 
 ![Explainability pipeline](assets/02_data_pipeline.svg)
 
-Permutation importance asks a practical question:
+For each feature, permutation importance:
 
-> How much does model performance drop when one feature is randomly shuffled?
+1. measures held-out ROC-AUC;
+2. randomly shuffles one feature;
+3. measures ROC-AUC again;
+4. records the performance drop;
+5. repeats the shuffle 16 times.
 
-If shuffling a feature hurts the score, the fitted model was using information carried by that feature.
+A larger positive value means the fitted classifier depends more strongly on that feature for **held-out discrimination**.
 
-I repeat each feature permutation 16 times to reduce the effect of one lucky or unlucky shuffle.
+## Recorded model performance
 
-## Feature importance
+| Metric | Result |
+|---|---:|
+| ROC-AUC | **0.9945** |
+
+## Top held-out permutation importances
 
 ![Permutation importance](assets/03_data_or_model.svg)
 
-The largest mean importance values in the recorded run were:
-
-| Feature | Mean importance |
-|---|---:|
-| worst texture | 0.00393 |
-| worst smoothness | 0.00219 |
-| worst concavity | 0.00087 |
-| mean concave points | 0.00087 |
-| worst concave points | 0.00044 |
-
-The values are small because scikit-learn's permutation importance is measuring the change in the estimator's default score on the held-out set.
-
-These numbers show model dependence, not causality. Correlated features can also substitute for one another, which can make an individually useful feature appear less important.
-
-## Results
+| Feature | Mean ROC-AUC drop | Std. dev. |
+|---|---:|---:|
+| worst area | 0.00485 | 0.00247 |
+| worst concave points | 0.00376 | 0.00203 |
+| worst perimeter | 0.00375 | 0.00242 |
+| mean concave points | 0.00217 | 0.00113 |
+| worst texture | 0.00176 | 0.00064 |
+| mean texture | 0.00106 | 0.00062 |
+| worst concavity | 0.00096 | 0.00071 |
+| mean concavity | 0.00086 | 0.00061 |
+| worst smoothness | 0.00072 | 0.00042 |
+| compactness error | 0.00052 | 0.00026 |
 
 ![Model discrimination](assets/04_evaluation_or_results.svg)
 
-The recorded ROC-AUC is **0.9945** on the held-out split.
+The error bars matter. Several features have small, overlapping effects, and correlated measurements can substitute for one another.
 
-That tells me the classifier ranks the two classes very well in this experiment. It does not mean the model is ready for clinical use, and permutation importance is not an explanation of why a biological outcome occurs.
+## What this explanation does not mean
 
-## Run it
+Permutation importance is **model dependence**, not biological causality.
+
+If two features contain similar information, shuffling one may appear unimportant because the model can still use the other. A feature can also look important because of associations in this specific dataset without being causal or clinically actionable.
+
+## Run
 
 ```bash
 python -m venv .venv
@@ -65,11 +77,24 @@ pip install -r requirements.txt
 python src/run_experiment.py
 ```
 
-On Windows, use `.venv\Scripts\activate`.
+## Test
 
-## Repository notes
+```bash
+pip install pytest
+pytest
+```
 
-- [DATA.md](DATA.md) explains the data source.
-- [ETHICS.md](ETHICS.md) explains the limits of interpreting a medical benchmark.
-- [REPRODUCIBILITY.md](REPRODUCIBILITY.md) records the experiment settings.
-- [paper/paper.md](paper/paper.md) contains the longer write-up.
+The CI smoke test uses fewer permutation repeats for speed but exercises the same ROC-AUC-scored path.
+
+## Engineering details
+
+- import-safe experiment module
+- explanation scoring explicitly set to `roc_auc`
+- held-out-only feature permutation
+- mean and standard deviation retained
+- behavioural tests and GitHub Actions
+- generated plots separated from curated SVG assets
+
+## Limits
+
+This is a small benchmark and one model family. A stronger XAI study would add repeated splits, grouped/correlated-feature importance, SHAP or conditional importance as a comparison, stability analysis, calibration, and external data.

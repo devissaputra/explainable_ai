@@ -1,6 +1,4 @@
-# Reproducing the Experiment
-
-Run:
+# Reproducing the experiment
 
 ```bash
 python -m venv .venv
@@ -9,10 +7,20 @@ pip install -r requirements.txt
 python src/run_experiment.py
 ```
 
-The train/test split is stratified with `random_state=42`.
+The train/test split, Random Forest, and permutation procedure use seed 42. Feature importance is computed on the held-out test set with 16 repeats.
 
-The Random Forest uses 450 trees and `random_state=42`. Permutation importance is calculated on the held-out set with 16 repeats and the same random seed.
+The crucial scoring choice is explicit:
 
-The script writes ROC-AUC and the ranked feature-importance values to `results/metrics.json`.
+```python
+permutation_importance(..., scoring="roc_auc")
+```
 
-Permutation importance can move slightly across package versions or retraining choices, so record the scikit-learn version when comparing exact values.
+This aligns the explanation with the model's reported discrimination metric.
+
+Outputs:
+
+- `results/metrics.json`
+- `results/figures/permutation_importance.png`
+- `results/figures/roc_curve.png`
+
+CI uses two permutation repeats for smoke testing so it exercises the real code path without paying the full runtime cost.

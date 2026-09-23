@@ -1,33 +1,17 @@
-\documentclass[11pt]{article}
+\documentclass{article}
 \usepackage[margin=1in]{geometry}
-\usepackage{hyperref}
-\title{Explainable AI with Permutation Importance}
+\title{Explainable AI with Held-Out Permutation Importance}
 \author{Devis W. Saputra}
+\date{}
 \begin{document}
 \maketitle
-
 \begin{abstract}
-I train a 450-tree Random Forest on the Wisconsin Diagnostic Breast Cancer dataset and use repeated permutation importance on held-out data to inspect which features the fitted model depends on.
+A Random Forest classifier is explained with held-out permutation importance scored by ROC-AUC, matching the model's evaluation metric.
 \end{abstract}
-
-\section{Question}
-Which input features most affect the held-out performance of a strong nonlinear classifier?
-
-\section{Data and Method}
-I use a stratified 75/25 split. The Random Forest has 450 trees and random state 42. Permutation importance is calculated on the test set with 16 repeats per feature.
-
+\section{Method}
+The model uses 450 trees and a stratified 75/25 split. Each feature is shuffled 16 times on held-out data. Importance is the resulting decrease in ROC-AUC.
 \section{Results}
-The held-out ROC-AUC is 0.9945. The largest measured permutation effects come from worst texture and worst smoothness, followed by several concavity-related measurements.
-
+Held-out ROC-AUC is 0.9945. The largest mean permutation effects include worst area, worst concave points, and worst perimeter.
 \section{Interpretation}
-Permutation importance describes model dependence, not biological causality. Correlated features can also share information and reduce one another's measured importance.
-
-\section{Limitations}
-The ranking comes from one fitted model and one split. A stronger study would repeat training, inspect explanation stability, and compare with other explanation methods.
-
-\section{Reproduction}
-Install \texttt{requirements.txt} and run \texttt{python src/run\_experiment.py}.
-
-\bibliographystyle{plain}
-\bibliography{references}
+Permutation importance measures model dependence, not causality. Correlated features can substitute for one another.
 \end{document}
