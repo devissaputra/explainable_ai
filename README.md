@@ -2,6 +2,8 @@
 
 [![CI](https://github.com/devissaputra/explainable_ai/actions/workflows/ci.yml/badge.svg)](https://github.com/devissaputra/explainable_ai/actions/workflows/ci.yml)
 
+
+**Category:** AI Engineering
 ![Project overview](assets/01_cover.svg)
 
 A compact explainability study built around a simple rule:
