@@ -1,22 +1,19 @@
-# Web Portfolio Entry — Explainable AI
+# Portfolio Summary
 
-**Track:** AI Engineering  
-**Difficulty:** ★★★★  
-**Dataset:** Wisconsin Diagnostic Breast Cancer dataset
+## Explainable AI with Permutation Importance
 
-Train a nonlinear Random Forest classifier and explain its held-out behavior using repeated permutation importance.
+I train a 450-tree Random Forest on the Wisconsin Diagnostic Breast Cancer dataset, then use repeated permutation importance on held-out data to inspect which features the fitted model depends on.
 
-## Four-image gallery
+### Images
 
-![Cover](assets/01_cover.svg)
+![Project overview](assets/01_cover.svg)
 
 ![Explainability pipeline](assets/02_data_pipeline.svg)
 
-![Held-out permutation importance](assets/03_data_or_model.svg)
+![Permutation importance](assets/03_data_or_model.svg)
 
-![Model discrimination and interpretation](assets/04_evaluation_or_results.svg)
+![Model discrimination](assets/04_evaluation_or_results.svg)
 
-**Skills:** Explainable AI, permutation importance, Random Forest, ROC-AUC, model interpretability
+**Key result:** held-out ROC-AUC was 0.9945. The largest measured permutation effects came from worst texture and worst smoothness.
 
-### Portfolio copy
-This project combines strong predictive performance with post-hoc interpretability. A 450-tree Random Forest reaches 0.9945 ROC-AUC on a stratified held-out split, while 16-repeat permutation importance measures which diagnostic features the fitted model relies on most. The analysis explicitly distinguishes model dependence from causal explanation.
+The importance values describe model dependence, not causal effects.
