@@ -1,0 +1,45 @@
+{
+  "roc_auc": 0.9945492662473795,
+  "top_features": [
+    [
+      "worst texture",
+      0.003933566433566425
+    ],
+    [
+      "worst smoothness",
+      0.0021853146853146807
+    ],
+    [
+      "worst concavity",
+      0.0008741258741258723
+    ],
+    [
+      "mean concave points",
+      0.0008741258741258723
+    ],
+    [
+      "worst concave points",
+      0.00043706293706293614
+    ],
+    [
+      "worst symmetry",
+      0.0
+    ],
+    [
+      "worst compactness",
+      0.0
+    ],
+    [
+      "concave points error",
+      0.0
+    ],
+    [
+      "symmetry error",
+      0.0
+    ],
+    [
+      "fractal dimension error",
+      0.0
+    ]
+  ]
+}
