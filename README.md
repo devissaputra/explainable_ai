@@ -1,40 +1,42 @@
-# 09. Explainable AI ★★★★
+# Explainable AI with Permutation Importance
 
-![Cover](assets/01_cover.svg)
+![Project overview](assets/01_cover.svg)
 
-> **Quick description:** Train a nonlinear classifier on real diagnostic data and explain its held-out behavior with permutation importance.
+I built this project to answer a question that comes after model training: once a nonlinear classifier performs well, how can I inspect what it is relying on?
 
-## Why this project matters
-This AI Engineering project focuses on a central problem in applied machine learning: a model can perform extremely well while still being difficult to interpret.
+The experiment uses a Random Forest on the Wisconsin Diagnostic Breast Cancer dataset and measures feature importance by repeatedly shuffling one feature at a time on held-out data.
 
-The experiment uses the real **Wisconsin Diagnostic Breast Cancer dataset**, trains a nonlinear Random Forest classifier, evaluates held-out discrimination with ROC-AUC, and then applies **permutation importance** to identify which measured features the fitted model depends on most.
+## Data and model
 
-## Dataset
-- **Dataset:** Wisconsin Diagnostic Breast Cancer
-- **Source:** scikit-learn `load_breast_cancer`
-- **Samples:** 569
-- **Features:** 30 numerical diagnostic measurements
-- **Split:** stratified 75% training / 25% held out
-- **Data provenance and usage:** [DATA.md](DATA.md)
+I use:
 
-## Explainability pipeline
+- 569 samples;
+- 30 numerical features;
+- a stratified 75/25 train/test split;
+- a Random Forest with 450 trees;
+- random state 42.
+
+The model's held-out class probabilities are evaluated with ROC-AUC.
+
+## How the explanation works
+
 ![Explainability pipeline](assets/02_data_pipeline.svg)
 
-### Processing steps
-1. Load the real WDBC feature matrix and labels.
-2. Create a stratified 75/25 train-test split.
-3. Fit a **Random Forest with 450 trees** on the training data.
-4. Generate held-out class probabilities.
-5. Compute ROC-AUC on the held-out set.
-6. Run permutation importance on the held-out features with **16 repeats per feature**.
-7. Rank features by their mean effect on the classifier's held-out score.
+Permutation importance asks a practical question:
 
-## Held-out permutation importance
-![Held-out permutation importance](assets/03_data_or_model.svg)
+> How much does model performance drop when one feature is randomly shuffled?
 
-The strongest measured permutation effects in this run were:
+If shuffling a feature hurts the score, the fitted model was using information carried by that feature.
 
-| Feature | Mean permutation importance |
+I repeat each feature permutation 16 times to reduce the effect of one lucky or unlucky shuffle.
+
+## Feature importance
+
+![Permutation importance](assets/03_data_or_model.svg)
+
+The largest mean importance values in the recorded run were:
+
+| Feature | Mean importance |
 |---|---:|
 | worst texture | 0.00393 |
 | worst smoothness | 0.00219 |
@@ -42,60 +44,32 @@ The strongest measured permutation effects in this run were:
 | mean concave points | 0.00087 |
 | worst concave points | 0.00044 |
 
-Permutation importance answers a specific question:
+The values are small because scikit-learn's permutation importance is measuring the change in the estimator's default score on the held-out set.
 
-> How much does the fitted model's held-out score deteriorate when one feature is randomly shuffled?
+These numbers show model dependence, not causality. Correlated features can also substitute for one another, which can make an individually useful feature appear less important.
 
-A high value means the fitted model depends more strongly on information carried by that feature. It does **not** establish that the feature causes the outcome.
+## Results
 
-## Model discrimination and interpretation
-![Model discrimination and interpretation](assets/04_evaluation_or_results.svg)
+![Model discrimination](assets/04_evaluation_or_results.svg)
 
-Generated metrics from the included experiment:
+The recorded ROC-AUC is **0.9945** on the held-out split.
 
-```json
-{
-  "roc_auc": 0.9945492662473795,
-  "top_features": [
-    ["worst texture", 0.003933566433566425],
-    ["worst smoothness", 0.0021853146853146807],
-    ["worst concavity", 0.0008741258741258723],
-    ["mean concave points", 0.0008741258741258723],
-    ["worst concave points", 0.00043706293706293614]
-  ]
-}
-```
+That tells me the classifier ranks the two classes very well in this experiment. It does not mean the model is ready for clinical use, and permutation importance is not an explanation of why a biological outcome occurs.
 
-### Interpretation
-- **ROC-AUC = 0.9945** indicates extremely strong held-out ranking discrimination in this split.
-- The largest permutation effects are concentrated among texture, smoothness, concavity, and concave-point measurements.
-- Several other features have near-zero permutation importance in this fitted model.
-- Near-zero permutation importance does not necessarily mean a feature is intrinsically useless. Correlated predictors can substitute for one another, reducing the measured effect of shuffling any single feature.
-- This analysis provides a **global model-dependence explanation**, not a local explanation for one individual prediction.
+## Run it
 
-## Reproduce
 ```bash
 python -m venv .venv
-source .venv/bin/activate   # Windows: .venv\Scripts\activate
+source .venv/bin/activate
 pip install -r requirements.txt
 python src/run_experiment.py
 ```
 
-Metrics are written to `results/metrics.json`.
+On Windows, use `.venv\Scripts\activate`.
 
-## Research documentation
-- [Scientific-style technical report](paper/paper.md)
-- [Website-ready portfolio entry](PORTFOLIO.md)
-- [Data provenance](DATA.md)
-- [Reproducibility notes](REPRODUCIBILITY.md)
-- [Ethics and responsible use](ETHICS.md)
-- [Citation metadata](CITATION.cff)
+## Repository notes
 
-## Difficulty
-**★★★★ — advanced**
-
-## Academic integrity
-This repository is a research portfolio artifact, not a peer-reviewed publication. Reported metrics and feature rankings are generated by the included code on the stated real dataset.
-
-## Stronger research extension
-A stronger version would add confidence intervals across random seeds, compare permutation importance with SHAP and partial-dependence methods, inspect feature correlation and grouped importance, evaluate calibration, add local explanations for individual predictions, and test explanation stability under retraining.
+- [DATA.md](DATA.md) explains the data source.
+- [ETHICS.md](ETHICS.md) explains the limits of interpreting a medical benchmark.
+- [REPRODUCIBILITY.md](REPRODUCIBILITY.md) records the experiment settings.
+- [paper/paper.md](paper/paper.md) contains the longer write-up.
