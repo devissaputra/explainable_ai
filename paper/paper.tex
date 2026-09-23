@@ -1,21 +1,33 @@
 \documentclass[11pt]{article}
 \usepackage[margin=1in]{geometry}
 \usepackage{hyperref}
-\title{09. Explainable AI★}
+\title{Explainable AI with Permutation Importance}
 \author{Devis W. Saputra}
 \begin{document}
 \maketitle
+
 \begin{abstract}
-This manuscript source accompanies the reproducible GitHub technical report. Numerical findings should be regenerated from the repository before academic use.
+I train a 450-tree Random Forest on the Wisconsin Diagnostic Breast Cancer dataset and use repeated permutation importance on held-out data to inspect which features the fitted model depends on.
 \end{abstract}
-\section{Research Objective}
-See the repository README and \texttt{paper/paper.md} for the full research question and rationale.
+
+\section{Question}
+Which input features most affect the held-out performance of a strong nonlinear classifier?
+
 \section{Data and Method}
-The dataset provenance, processing steps, executable method, validation design, and limitations are documented in the repository.
-\section{Reproducibility}
-Install \texttt{requirements.txt} and execute \texttt{python src/run\_experiment.py}.
+I use a stratified 75/25 split. The Random Forest has 450 trees and random state 42. Permutation importance is calculated on the test set with 16 repeats per feature.
+
+\section{Results}
+The held-out ROC-AUC is 0.9945. The largest measured permutation effects come from worst texture and worst smoothness, followed by several concavity-related measurements.
+
+\section{Interpretation}
+Permutation importance describes model dependence, not biological causality. Correlated features can also share information and reduce one another's measured importance.
+
 \section{Limitations}
-This is a portfolio research artifact rather than a peer-reviewed publication. External validation and stronger comparative experiments are required for publication claims.
+The ranking comes from one fitted model and one split. A stronger study would repeat training, inspect explanation stability, and compare with other explanation methods.
+
+\section{Reproduction}
+Install \texttt{requirements.txt} and run \texttt{python src/run\_experiment.py}.
+
 \bibliographystyle{plain}
 \bibliography{references}
 \end{document}
