@@ -4,13 +4,13 @@
 <text x="60" y="112" font-family="Arial" font-size="19" fill="#64748b">Top features ranked by mean decrease in the classifier's held-out score across 16 permutations.</text>
 <rect x="70" y="165" width="1060" height="440" rx="22" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
 <g font-family="Arial" font-size="18" fill="#334155">
-<text x="110" y="225">worst texture</text><text x="110" y="275">worst smoothness</text><text x="110" y="325">worst concavity</text><text x="110" y="375">mean concave points</text><text x="110" y="425">worst concave points</text><text x="110" y="475">other top-ranked features</text>
+<text x="110" y="225">worst area</text><text x="110" y="275">worst texture</text><text x="110" y="325">worst perimeter</text><text x="110" y="375">mean concave points</text><text x="110" y="425">worst concave points</text><text x="110" y="475">other top-ranked features</text>
 </g>
 <g>
-<rect x="340" y="202" width="610" height="30" rx="6" fill="#2563eb"/><rect x="340" y="252" width="340" height="30" rx="6" fill="#60a5fa"/><rect x="340" y="302" width="136" height="30" rx="6" fill="#93c5fd"/><rect x="340" y="352" width="136" height="30" rx="6" fill="#93c5fd"/><rect x="340" y="402" width="68" height="30" rx="6" fill="#bfdbfe"/><rect x="340" y="452" width="20" height="30" rx="6" fill="#dbeafe"/>
+<rect x="340" y="202" width="610" height="30" rx="6" fill="#2563eb"/><rect x="340" y="252" width="473" height="30" rx="6" fill="#60a5fa"/><rect x="340" y="302" width="472" height="30" rx="6" fill="#93c5fd"/><rect x="340" y="352" width="273" height="30" rx="6" fill="#93c5fd"/><rect x="340" y="402" width="221" height="30" rx="6" fill="#bfdbfe"/><rect x="340" y="452" width="20" height="30" rx="6" fill="#dbeafe"/>
 </g>
 <g font-family="Arial" font-size="18" fill="#475569">
-<text x="970" y="225">0.00393</text><text x="700" y="275">0.00219</text><text x="495" y="325">0.00087</text><text x="495" y="375">0.00087</text><text x="430" y="425">0.00044</text><text x="380" y="475">≈0</text>
+<text x="970" y="225">0.00485</text><text x="700" y="275">0.00376</text><text x="495" y="325">0.00375</text><text x="495" y="375">0.00217</text><text x="430" y="425">0.00176</text><text x="380" y="475">≈0</text>
 </g>
 <text x="340" y="555" font-family="Arial" font-size="19" fill="#64748b">Mean held-out permutation importance →</text>
 <rect x="650" y="525" width="410" height="55" rx="14" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/>
