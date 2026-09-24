@@ -15,7 +15,7 @@
 <text x="775" y="220" font-family="Arial" font-size="23" font-weight="700" fill="#166534">What XAI tells us</text>
 <text x="775" y="285" font-family="Arial" font-size="20" fill="#334155">✓ which features the model uses</text>
 <text x="775" y="330" font-family="Arial" font-size="20" fill="#334155">✓ how strongly score changes</text>
-<text x="775" y="375" font-family="Arial" font-size="20" fill="#334155">✓ whether importance is stable</text>
+<text x="775" y="375" font-family="Arial" font-size="20" fill="#334155">✓ variability across permutation repeats</text>
 <text x="775" y="435" font-family="Arial" font-size="20" fill="#991b1b">✗ not causal effect</text>
 <text x="775" y="475" font-family="Arial" font-size="20" fill="#991b1b">✗ not clinical justification</text>
 <text x="775" y="515" font-family="Arial" font-size="20" fill="#991b1b">✗ not individual explanation</text>
