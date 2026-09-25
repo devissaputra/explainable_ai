@@ -78,20 +78,20 @@
               },
               {
                 "feature": "occupation",
-                "mean_roc_auc_drop": 0.01601700512782487,
-                "std_roc_auc_drop": 0.0015902168844869975,
+                "mean_roc_auc_drop": 0.01601698366602567,
+                "std_roc_auc_drop": 0.0015902219795948616,
                 "top_k_frequency": 1.0
               },
               {
                 "feature": "relationship",
-                "mean_roc_auc_drop": 0.011354922873161553,
-                "std_roc_auc_drop": 0.0013057383551649936,
+                "mean_roc_auc_drop": 0.011354901411362354,
+                "std_roc_auc_drop": 0.0013057296728954193,
                 "top_k_frequency": 1.0
               },
               {
                 "feature": "hours-per-week",
-                "mean_roc_auc_drop": 0.011224671213821084,
-                "std_roc_auc_drop": 0.0011418744306065166,
+                "mean_roc_auc_drop": 0.011224692675620283,
+                "std_roc_auc_drop": 0.0011418744598515355,
                 "top_k_frequency": 1.0
               },
               {
@@ -102,8 +102,8 @@
               },
               {
                 "feature": "sex",
-                "mean_roc_auc_drop": 0.005323406135190195,
-                "std_roc_auc_drop": 0.0013838591820527779,
+                "mean_roc_auc_drop": 0.005323470520587799,
+                "std_roc_auc_drop": 0.0013838253089659234,
                 "top_k_frequency": 0.625
               },
               {
@@ -138,15 +138,15 @@
               },
               {
                 "feature": "education",
-                "mean_roc_auc_drop": 0.00019255526241606508,
-                "std_roc_auc_drop": 0.0003613384997767792,
+                "mean_roc_auc_drop": 0.00019251233881766722,
+                "std_roc_auc_drop": 0.00036135767884699953,
                 "top_k_frequency": 0.0
               }
             ]
           }
         },
         "protected_excluded": {
-          "roc_auc": 0.9017131020337213,
+          "roc_auc": 0.9017130651910743,
           "error_analysis": {
             "tn": 7352,
             "fp": 1937,
@@ -163,73 +163,73 @@
             "ranking": [
               {
                 "feature": "marital-status",
-                "mean_roc_auc_drop": 0.12305682723869737,
-                "std_roc_auc_drop": 0.005647964946599192,
+                "mean_roc_auc_drop": 0.1230565911589062,
+                "std_roc_auc_drop": 0.00564796825622531,
                 "top_k_frequency": 1.0
               },
               {
                 "feature": "education-num",
-                "mean_roc_auc_drop": 0.04629966818341484,
-                "std_roc_auc_drop": 0.0025613091367365053,
+                "mean_roc_auc_drop": 0.046299346256426864,
+                "std_roc_auc_drop": 0.0025613045728315425,
                 "top_k_frequency": 1.0
               },
               {
                 "feature": "capital-gain",
-                "mean_roc_auc_drop": 0.03966400179798363,
-                "std_roc_auc_drop": 0.0023889849724692577,
+                "mean_roc_auc_drop": 0.039663937412586045,
+                "std_roc_auc_drop": 0.00238900192047189,
                 "top_k_frequency": 1.0
               },
               {
                 "feature": "occupation",
-                "mean_roc_auc_drop": 0.01582689651051742,
+                "mean_roc_auc_drop": 0.015826553121730237,
                 "std_roc_auc_drop": 0.0015049314512176313,
                 "top_k_frequency": 1.0
               },
               {
                 "feature": "hours-per-week",
-                "mean_roc_auc_drop": 0.011992102229589019,
+                "mean_roc_auc_drop": 0.011991758840801836,
                 "std_roc_auc_drop": 0.0011791294655916836,
                 "top_k_frequency": 1.0
               },
               {
                 "feature": "relationship",
-                "mean_roc_auc_drop": 0.006874214283531251,
-                "std_roc_auc_drop": 0.0013560660457697074,
+                "mean_roc_auc_drop": 0.006873978203740062,
+                "std_roc_auc_drop": 0.0013560591272757216,
                 "top_k_frequency": 1.0
               },
               {
                 "feature": "age",
-                "mean_roc_auc_drop": 0.006330543986214937,
+                "mean_roc_auc_drop": 0.006330200597427754,
                 "std_roc_auc_drop": 0.0013281842941928546,
                 "top_k_frequency": 1.0
               },
               {
                 "feature": "capital-loss",
-                "mean_roc_auc_drop": 0.004679595082809837,
-                "std_roc_auc_drop": 0.0011759483366224669,
+                "mean_roc_auc_drop": 0.004679273155821853,
+                "std_roc_auc_drop": 0.0011758999462697956,
                 "top_k_frequency": 0.9375
               },
               {
                 "feature": "workclass",
-                "mean_roc_auc_drop": 0.0018263991118591533,
+                "mean_roc_auc_drop": 0.0018260557230719704,
                 "std_roc_auc_drop": 0.0005288771985049659,
                 "top_k_frequency": 0.0625
               },
               {
                 "feature": "native-country",
-                "mean_roc_auc_drop": 0.0012753674174174959,
-                "std_roc_auc_drop": 0.000558460666409306,
+                "mean_roc_auc_drop": 0.0012753459556183039,
+                "std_roc_auc_drop": 0.0005584652130067046,
                 "top_k_frequency": 0.0
               },
               {
                 "feature": "fnlwgt",
-                "mean_roc_auc_drop": 0.00043767047107098195,
-                "std_roc_auc_drop": 0.00021095278216200198,
+                "mean_roc_auc_drop": 0.00043730562048460014,
+                "std_roc_auc_drop": 0.00021091819427191725,
                 "top_k_frequency": 0.0
               },
               {
                 "feature": "education",
-                "mean_roc_auc_drop": 0.00020588303971867672,
+                "mean_roc_auc_drop": 0.00020553965093149384,
                 "std_roc_auc_drop": 0.00036975456935488976,
                 "top_k_frequency": 0.0
               }
@@ -324,7 +324,7 @@
             "White": {
               "n": 10442,
               "positive_rate": 0.2547404711741046,
-              "roc_auc": 0.8980141177925539,
+              "roc_auc": 0.8980140694836553,
               "tpr_at_0_5": 0.8390977443609022,
               "fpr_at_0_5": 0.22243639167309176
             }
@@ -340,7 +340,7 @@
             "Male": {
               "n": 8154,
               "positive_rate": 0.3027961736571008,
-              "roc_auc": 0.8789169340989216,
+              "roc_auc": 0.8789168628548976,
               "tpr_at_0_5": 0.8550020251113811,
               "fpr_at_0_5": 0.2872471416007036
             }
@@ -682,7 +682,7 @@
       "seed": 42,
       "logistic": {
         "all_features": 0.9023751275584548,
-        "protected_excluded": 0.9017131020337213
+        "protected_excluded": 0.9017130651910743
       },
       "random_forest": {
         "all_features": 0.9149490440401529,
@@ -714,11 +714,11 @@
   ],
   "paired_feature_exclusion_deltas": {
     "logistic": {
-      "mean_roc_auc_delta_excluded_minus_all": -0.0007971569855612648,
-      "std_delta": 0.0005069365157331985,
+      "mean_roc_auc_delta_excluded_minus_all": -0.0007971643540906736,
+      "std_delta": 0.0005069340607562621,
       "bootstrap_95_interval": [
-        -0.0011907175098143652,
-        -0.0004035964613081644
+        -0.001190724878343774,
+        -0.00040360382983757327
       ],
       "note": "Descriptive paired-split interval; repeated holdouts are not independent replications."
     },
