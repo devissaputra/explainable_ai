@@ -6,25 +6,31 @@
 **Study:** model dependence, explanation stability and protected-feature governance  
 **Dataset:** UCI Adult, dataset 2
 
-## A result qualifies as bundle evidence only if it records
+## A valid full result must record
 
-1. canonical UCI source, DOI, license and archive SHA-256;
+1. canonical UCI source, DOI, license and enforced archive SHA-256;
 2. sample count, feature count and positive-class prevalence;
-3. split seed, train/test sizes and repeated-split protocol;
-4. train-only missing-value handling and categorical encoding;
-5. logistic-regression and random-forest model families;
-6. all-feature and protected-excluded conditions;
-7. dummy-prior baseline and held-out ROC-AUC;
-8. held-out permutation importance with repeat count;
-9. top-k explanation-stability frequency and pairwise Jaccard;
-10. paired protected-exclusion performance deltas across repeated splits;
-11. subgroup diagnostics for race and sex;
-12. overall error analysis and high-confidence errors;
-13. software environment and generated figures.
+3. exact-predictor duplicate statistics;
+4. grouped train/test split method, seed, sizes and zero exact predictor-group overlap;
+5. train-only missing-value handling and categorical encoding;
+6. logistic-regression and random-forest model families;
+7. all-feature and race/sex-excluded conditions;
+8. class-prior baseline and held-out ROC-AUC;
+9. held-out raw-feature permutation importance with repeat count and sample size;
+10. top-k explanation frequency and pairwise-Jaccard stability;
+11. paired feature-exclusion performance deltas across repeated grouped splits;
+12. subgroup diagnostics for race and sex with group and class denominators;
+13. overall error analysis and high-confidence errors;
+14. software environment and generated figures;
+15. generated Markdown and LaTeX results.
+
+## Leakage contract
+
+Exact duplicate predictor vectors must not cross training and test partitions. Preprocessing is learned only from training data. Permutation importance is computed only on held-out observations.
 
 ## Statistical boundary
 
-Repeated holdouts reuse observations and are not independent replications. Bootstrap intervals over paired split-level deltas are descriptive robustness summaries; no inferential p-value is claimed.
+Repeated holdouts reuse observations and are not independent replications. Bootstrap intervals over split-level deltas are descriptive robustness summaries.
 
 ## Non-claims
 
