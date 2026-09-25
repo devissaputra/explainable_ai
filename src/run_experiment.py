@@ -9,6 +9,7 @@ import urllib.request
 import zipfile
 from pathlib import Path
 
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -20,7 +21,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.inspection import permutation_importance
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import confusion_matrix, roc_auc_score
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import StratifiedGroupKFold, train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
@@ -34,11 +35,24 @@ PROTECTED = ("race", "sex")
 PERMUTATION_REPEATS = 16
 EXPLANATION_SAMPLE = 4000
 TOP_K = 8
+EXPECTED_ARCHIVE_SHA256 = "7537312dd56c2b98035880805ce99e68183a30ee468aa5329d6df0fbb3cc21bb"
+EXPECTED_ROWS = 48842
+EXPECTED_FEATURES = 14
 COLUMNS = [
     "age", "workclass", "fnlwgt", "education", "education-num",
     "marital-status", "occupation", "relationship", "race", "sex",
     "capital-gain", "capital-loss", "hours-per-week", "native-country", "income",
 ]
+
+
+def validate_archive_hash(payload: bytes, expected_sha256: str = EXPECTED_ARCHIVE_SHA256) -> str:
+    actual = hashlib.sha256(payload).hexdigest()
+    if actual != expected_sha256:
+        raise ValueError(
+            f"Unexpected UCI Adult archive SHA-256: {actual}; expected {expected_sha256}. "
+            "The frozen research protocol requires the exact validated archive bytes."
+        )
+    return actual
 
 
 def _extract_adult_files(payload: bytes) -> tuple[bytes, bytes]:
@@ -97,10 +111,18 @@ def load_real_data(data_path: str | Path | None = None, cache_dir: str | Path = 
         cached.write_bytes(payload)
         source = DATA_URL
 
+    archive_sha256 = validate_archive_hash(payload)
     train_raw, test_raw = _extract_adult_files(payload)
     frame = pd.concat([_parse_adult(train_raw), _parse_adult(test_raw, True)], ignore_index=True)
     y = normalize_target(frame.pop("income"))
     X = clean_features(frame)
+    if len(X) != EXPECTED_ROWS or X.shape[1] != EXPECTED_FEATURES:
+        raise ValueError(
+            f"Unexpected UCI Adult shape: {X.shape}; expected "
+            f"({EXPECTED_ROWS}, {EXPECTED_FEATURES}) predictors"
+        )
+    group_ids = predictor_group_ids(X)
+    group_counts = pd.Series(group_ids).value_counts()
     return X, y, {
         "name": "UCI Adult",
         "uci_id": UCI_DATASET_ID,
@@ -108,11 +130,32 @@ def load_real_data(data_path: str | Path | None = None, cache_dir: str | Path = 
         "license": DATA_LICENSE,
         "source": source,
         "canonical_source": DATA_URL,
-        "archive_sha256": hashlib.sha256(payload).hexdigest(),
+        "archive_sha256": archive_sha256,
         "n_samples": int(len(X)),
         "n_features": int(X.shape[1]),
         "positive_rate": float(y.mean()),
+        "predictor_unique_groups": int(pd.Series(group_ids).nunique()),
+        "duplicate_predictor_rows": int(len(X) - pd.Series(group_ids).nunique()),
+        "largest_predictor_group": int(group_counts.max()),
     }
+
+
+def predictor_group_ids(X: pd.DataFrame) -> np.ndarray:
+    """Stable row-group ids so exact predictor duplicates cannot cross train/test."""
+    canonical = X.copy()
+    for column in canonical.columns:
+        if canonical[column].dtype == object:
+            canonical[column] = canonical[column].fillna("<missing>").astype(str)
+    return pd.util.hash_pandas_object(canonical, index=False).to_numpy(dtype=np.uint64)
+
+
+def grouped_stratified_split(X: pd.DataFrame, y: pd.Series, seed: int):
+    groups = predictor_group_ids(X)
+    splitter = StratifiedGroupKFold(n_splits=4, shuffle=True, random_state=seed)
+    train_idx, test_idx = next(splitter.split(X, y, groups))
+    if set(groups[train_idx]).intersection(set(groups[test_idx])):
+        raise RuntimeError("Exact predictor group leaked across train/test")
+    return train_idx, test_idx, groups
 
 
 def build_preprocessor(X: pd.DataFrame) -> ColumnTransformer:
@@ -222,12 +265,16 @@ def subgroup_audit(y_true, probability, groups: pd.Series, min_n: int = 50) -> d
         yg, pg, pr = y[mask], p[mask], pred[mask]
         normal = yg == 0
         positive = yg == 1
+        positive_n = int(positive.sum())
+        negative_n = int(normal.sum())
         out[group] = {
             "n": int(mask.sum()),
+            "positive_n": positive_n,
+            "negative_n": negative_n,
             "positive_rate": float(yg.mean()),
-            "roc_auc": float(roc_auc_score(yg, pg)) if len(np.unique(yg)) == 2 else None,
-            "tpr_at_0_5": float(((pr == 1) & positive).sum() / max(1, positive.sum())),
-            "fpr_at_0_5": float(((pr == 1) & normal).sum() / max(1, normal.sum())),
+            "roc_auc": float(roc_auc_score(yg, pg)) if positive_n and negative_n else None,
+            "tpr_at_0_5": float(((pr == 1) & positive).sum() / positive_n) if positive_n else None,
+            "fpr_at_0_5": float(((pr == 1) & normal).sum() / negative_n) if negative_n else None,
         }
     return out
 
@@ -268,6 +315,57 @@ def paired_condition_deltas(repeated: list[dict]) -> dict:
     return out
 
 
+def build_results_latex(results: dict) -> str:
+    bs = "\\"
+    row_end = bs + bs
+    lines = [
+        f"{bs}section{{Generated empirical results}}",
+        "This section is generated by \\texttt{src/run\_experiment.py}; numerical values should not be hand-edited.",
+        "",
+        f"Dataset: UCI Adult, $n={results['dataset']['n_samples']:,}$, "
+        f"{results['dataset']['n_features']} predictors, positive prevalence "
+        f"{results['dataset']['positive_rate']:.4f}.",
+        "",
+        f"{bs}begin{{table}}[htbp]",
+        f"{bs}centering",
+        f"{bs}small",
+        f"{bs}begin{{tabular}}{{lrrrr}}",
+        f"{bs}toprule",
+        "Model & All-feature AUC & Excluded AUC & Top-8 stability all & Top-8 stability excluded " + row_end,
+        f"{bs}midrule",
+    ]
+    for family, d in results["primary"]["models"].items():
+        a, e = d["all_features"], d["protected_excluded"]
+        lines.append(
+            f"{family.replace('_', ' ').title()} & {a['roc_auc']:.4f} & {e['roc_auc']:.4f} & "
+            f"{a['permutation_importance']['mean_pairwise_top_k_jaccard']:.4f} & "
+            f"{e['permutation_importance']['mean_pairwise_top_k_jaccard']:.4f} " + row_end
+        )
+    lines += [
+        f"{bs}bottomrule",
+        f"{bs}end{{tabular}}",
+        f"{bs}caption{{Primary grouped holdout results. Exact duplicate predictor rows are kept within one split partition.}}",
+        f"{bs}label{{tab:primary-results}}",
+        f"{bs}end{{table}}",
+        "",
+        f"{bs}paragraph{{Feature-exclusion sensitivity.}}",
+    ]
+    for family, delta in results["paired_feature_exclusion_deltas"].items():
+        lo, hi = delta["bootstrap_95_interval"]
+        lines.append(
+            f"{family.replace('_', ' ').title()}: mean AUC change "
+            f"{delta['mean_roc_auc_delta_excluded_minus_all']:.4f}, descriptive 95\% interval "
+            f"[{lo:.4f}, {hi:.4f}]."
+        )
+    lines += [
+        "",
+        f"{bs}paragraph{{Interpretation.}}",
+        "Removing race and sex changes discrimination only slightly under this protocol, but this does not establish fairness: correlated proxies, measurement choices, and subgroup error differences can remain.",
+        "",
+    ]
+    return "\n".join(lines)
+
+
 def run_experiment(results_dir: str | Path = "results", data_path: str | Path | None = None, quick: bool = False):
     X, y, dataset = load_real_data(data_path=data_path)
     protected_actual = [c for c in PROTECTED if c in X.columns]
@@ -276,13 +374,23 @@ def run_experiment(results_dir: str | Path = "results", data_path: str | Path | 
     primary_detail = None
 
     for seed in seeds:
-        X_train, X_test, y_train, y_test = train_test_split(
-            X, y, test_size=.25, random_state=seed, stratify=y
-        )
+        train_idx, test_idx, groups = grouped_stratified_split(X, y, seed)
+        X_train, X_test = X.iloc[train_idx].copy(), X.iloc[test_idx].copy()
+        y_train, y_test = y.iloc[train_idx].copy(), y.iloc[test_idx].copy()
         reduced_train = X_train.drop(columns=protected_actual)
         reduced_test = X_test.drop(columns=protected_actual)
         row = {"seed": seed}
-        detail = {"seed": seed, "n_train": len(X_train), "n_test": len(X_test), "models": {}}
+        detail = {
+            "seed": seed,
+            "n_train": len(X_train),
+            "n_test": len(X_test),
+            "train_positive_rate": float(y_train.mean()),
+            "test_positive_rate": float(y_test.mean()),
+            "exact_predictor_group_overlap": int(
+                len(set(groups[train_idx]).intersection(set(groups[test_idx])))
+            ),
+            "models": {},
+        }
         for family in ("logistic", "random_forest"):
             all_result = fit_condition(
                 X_train, X_test, y_train, y_test, family, seed, explain=(seed == PRIMARY_SEED)
@@ -311,9 +419,9 @@ def run_experiment(results_dir: str | Path = "results", data_path: str | Path | 
         if seed == PRIMARY_SEED:
             primary_detail = detail
 
-    dummy_train, dummy_test, dummy_y_train, dummy_y_test = train_test_split(
-        X, y, test_size=.25, random_state=PRIMARY_SEED, stratify=y
-    )
+    dummy_train_idx, dummy_test_idx, _ = grouped_stratified_split(X, y, PRIMARY_SEED)
+    dummy_train, dummy_test = X.iloc[dummy_train_idx], X.iloc[dummy_test_idx]
+    dummy_y_train, dummy_y_test = y.iloc[dummy_train_idx], y.iloc[dummy_test_idx]
     dummy = DummyClassifier(strategy="prior").fit(dummy_train, dummy_y_train)
     dummy_auc = float(roc_auc_score(dummy_y_test, dummy.predict_proba(dummy_test)[:, 1]))
 
@@ -322,7 +430,8 @@ def run_experiment(results_dir: str | Path = "results", data_path: str | Path | 
         "status": "quick_smoke_run" if quick else "complete",
         "dataset": dataset,
         "protocol": {
-            "test_fraction": .25,
+            "target_test_fraction": .25,
+            "split_method": "StratifiedGroupKFold(n_splits=4), first fold; exact predictor duplicates grouped",
             "primary_seed": PRIMARY_SEED,
             "repeated_seeds": list(seeds),
             "protected_attributes": protected_actual,
@@ -340,6 +449,7 @@ def run_experiment(results_dir: str | Path = "results", data_path: str | Path | 
             "numpy": np.__version__,
             "pandas": pd.__version__,
             "scikit_learn": sklearn.__version__,
+            "matplotlib": matplotlib.__version__,
         },
     }
 
@@ -353,6 +463,7 @@ def run_experiment(results_dir: str | Path = "results", data_path: str | Path | 
         "# Results\n\n" + (out / "summary.md").read_text(encoding="utf-8").replace("# Empirical Results Summary\n\n", "", 1),
         encoding="utf-8",
     )
+    Path("paper/results.tex").write_text(build_results_latex(results), encoding="utf-8")
     return results
 
 
@@ -372,6 +483,19 @@ def write_summary(results: dict, path: Path) -> None:
             f"| {family} | {a['roc_auc']:.4f} | {e['roc_auc']:.4f} | "
             f"{a['permutation_importance']['mean_pairwise_top_k_jaccard']:.4f} | "
             f"{e['permutation_importance']['mean_pairwise_top_k_jaccard']:.4f} |"
+        )
+    lines += [
+        "", "## Frozen data and split integrity", "",
+        f"- archive SHA-256: \`{results['dataset']['archive_sha256']}\`",
+        f"- exact duplicate predictor rows in full dataset: {results['dataset']['duplicate_predictor_rows']}",
+        f"- exact predictor-group overlap in the primary train/test split: {results['primary']['exact_predictor_group_overlap']}", "",
+        "## Repeated split feature-exclusion sensitivity", "",
+    ]
+    for family, d in results["paired_feature_exclusion_deltas"].items():
+        lo, hi = d["bootstrap_95_interval"]
+        lines.append(
+            f"- {family}: mean AUC Δ excluded-minus-all = {d['mean_roc_auc_delta_excluded_minus_all']:.4f}; "
+            f"descriptive 95% bootstrap interval [{lo:.4f}, {hi:.4f}]"
         )
     lines += [
         "", "## Interpretation guardrail", "",

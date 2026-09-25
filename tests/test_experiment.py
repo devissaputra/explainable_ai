@@ -1,4 +1,5 @@
 from pathlib import Path
+import hashlib
 import io
 import zipfile
 
@@ -11,9 +12,11 @@ from src.run_experiment import (
     _parse_adult,
     build_model,
     clean_features,
+    grouped_stratified_split,
     error_analysis,
     normalize_target,
     subgroup_audit,
+    validate_archive_hash,
 )
 
 
@@ -70,3 +73,29 @@ def test_parse_combined_archive():
     a, b = _extract_adult_files(buf.getvalue())
     assert len(_parse_adult(a)) == 1
     assert len(_parse_adult(b, True)) == 1
+
+
+def test_frozen_archive_hash_guard():
+    payload = b"adult-fixture"
+    expected = hashlib.sha256(payload).hexdigest()
+    assert validate_archive_hash(payload, expected) == expected
+    with pytest.raises(ValueError, match="Unexpected UCI Adult archive SHA-256"):
+        validate_archive_hash(payload, "0" * 64)
+
+
+def test_grouped_split_keeps_exact_predictor_duplicates_together():
+    X = pd.DataFrame({
+        "age": [20, 20, 30, 30, 40, 40, 50, 50, 60, 60, 70, 70, 80, 80, 90, 90],
+        "job": ["a","a","b","b","c","c","d","d","e","e","f","f","g","g","h","h"],
+    })
+    y = pd.Series([0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1])
+    train_idx, test_idx, groups = grouped_stratified_split(X, y, 42)
+    assert not set(groups[train_idx]).intersection(set(groups[test_idx]))
+
+
+def test_subgroup_audit_reports_class_denominators():
+    y = [0, 1, 0, 1, 0, 1]
+    p = [.1, .8, .2, .7, .3, .9]
+    groups = pd.Series(["A", "A", "A", "B", "B", "B"])
+    out = subgroup_audit(y, p, groups, min_n=3)
+    assert out["A"]["positive_n"] + out["A"]["negative_n"] == out["A"]["n"]

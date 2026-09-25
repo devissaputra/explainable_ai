@@ -1,12 +1,46 @@
-\documentclass{article}
-\title{Held-Out Permutation Importance and Protected-Feature Governance on UCI Adult}
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{microtype}
+
+\title{Model Dependence, Explanation Stability and Protected-Feature Governance on UCI Adult}
 \author{Devis Wawan Saputra}
+\date{}
+
 \begin{document}
 \maketitle
-\section{Research question}
-We study held-out permutation importance and compare all-feature prediction with a protected-feature-excluded condition.
+
+\begin{abstract}
+Feature-importance plots are often treated as stable properties of a dataset, even though explanations depend on the fitted model, evaluation sample, metric, and correlated predictors. This reproducible study evaluates logistic regression and random forest on the UCI Adult income benchmark under all-feature and race/sex-excluded conditions. Held-out permutation importance, repeated permutation stability, duplicate-aware grouped holdouts, repeated split robustness, subgroup diagnostics, and error analysis are used to separate predictive dependence from causal or fairness claims.
+\end{abstract}
+
+\section{Research questions}
+Which raw features support held-out discrimination in each model family? How stable are top features across permutation repeats? How do performance and explanations change when race and sex are excluded? What subgroup and error patterns remain?
+
 \section{Data}
-UCI Adult, dataset 2, DOI 10.24432/C5XW20.
-\section{Interpretation boundary}
-Permutation importance measures fitted-model dependence and is not causal attribution or fairness certification.
+The study uses UCI Adult (dataset 2; DOI \href{https://doi.org/10.24432/C5XW20}{10.24432/C5XW20}) \cite{uciAdult}. The runner validates the exact UCI archive by SHA-256 before analysis. The original \texttt{adult.data} and \texttt{adult.test} files are combined because the goal is repeated robustness analysis rather than reproduction of the historical fixed benchmark split.
+
+\section{Leakage control}
+Exact duplicate predictor rows are assigned a common group identifier. Each 75/25-style split is produced with stratified grouped cross-validation so an identical predictor vector cannot appear in both training and test partitions. Preprocessing is fitted only inside the training pipeline.
+
+\section{Models and governance conditions}
+Logistic regression and random forest are fitted under two conditions: all available predictors and a condition that excludes race and sex before model fitting. The second condition is a governance sensitivity analysis rather than a fairness intervention.
+
+\section{Explanation protocol}
+Permutation importance is computed on held-out observations using ROC-AUC and 16 shuffles per feature \cite{breiman2001rf,fisher2019model}. The study records mean and standard deviation of AUC drop, top-8 frequency, and mean pairwise Jaccard similarity of top-8 feature sets.
+
+\section{Subgroup and error diagnostics}
+Predictions from both feature conditions are audited descriptively across race and sex groups. Group sample counts and positive/negative denominators are retained with ROC-AUC, TPR, and FPR. Error analysis reports false positives, false negatives, overall error rate, and high-confidence errors.
+
+\input{results.tex}
+
+\section{Validity and responsible-use boundary}
+Permutation importance is not causal attribution and can redistribute importance among correlated variables. Removing race and sex does not remove proxy information or structural inequity. Adult is a historical U.S. census-derived benchmark and does not justify automated employment, lending, benefits, admissions, or eligibility decisions. Repeated grouped holdouts reuse observations and are treated as robustness checks, not independent replications.
+
+\section{Reproducibility}
+The executable study is \texttt{src/run\_experiment.py}. Generated evidence is stored in \texttt{results/metrics.json}, \texttt{results/summary.md}, \texttt{results/figures/}, \texttt{paper/results.md}, and \texttt{paper/results.tex}.
+
+\bibliographystyle{plain}
+\bibliography{references}
 \end{document}
