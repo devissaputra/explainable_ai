@@ -1,7 +1,10 @@
 # Portfolio Positioning
 
 **Primary tag:** AI Engineering  
-**Artifact type:** Research Bundle  
-**Research theme:** explainability, feature governance, model dependence
+**Artifact type:** Empirical Research Bundle  
+**Research theme:** explainability, model dependence, explanation stability and feature governance  
+**External data:** UCI Adult, frozen archive
 
-Professor-facing evidence includes real public data, a controlled two-condition design, held-out explanation computation, uncertainty across permutation repeats, and explicit limits on causal/fairness interpretation.
+This repository demonstrates a leakage-aware explainability workflow: frozen external-data provenance, exact-duplicate-aware grouped holdouts, train-only preprocessing, two model families, protected-feature sensitivity, held-out permutation importance, explanation stability, repeated split robustness, subgroup/error diagnostics, generated evidence and manuscript-ready outputs.
+
+Recommended review path: `README.md` → `DATA.md` → `src/run_experiment.py` → `results/summary.md` → `RESEARCH_BUNDLE.md` → `paper/paper.md`.
