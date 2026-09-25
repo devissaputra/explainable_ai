@@ -1,26 +1,69 @@
 from __future__ import annotations
 
+import argparse
+import hashlib
+import io
 import json
 import platform
+import urllib.request
+import zipfile
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import sklearn
-from ucimlrepo import fetch_ucirepo
 from sklearn.compose import ColumnTransformer
+from sklearn.dummy import DummyClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.impute import SimpleImputer
 from sklearn.inspection import permutation_importance
-from sklearn.metrics import roc_auc_score
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import confusion_matrix, roc_auc_score
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
-SEED = 42
+PRIMARY_SEED = 42
+REPEATED_SEEDS = (13, 29, 42, 73, 101)
 UCI_DATASET_ID = 2
+DATA_URL = "https://archive.ics.uci.edu/static/public/2/adult.zip"
+DATA_DOI = "10.24432/C5XW20"
+DATA_LICENSE = "CC BY 4.0"
 PROTECTED = ("race", "sex")
+PERMUTATION_REPEATS = 16
+EXPLANATION_SAMPLE = 4000
+TOP_K = 8
+COLUMNS = [
+    "age", "workclass", "fnlwgt", "education", "education-num",
+    "marital-status", "occupation", "relationship", "race", "sex",
+    "capital-gain", "capital-loss", "hours-per-week", "native-country", "income",
+]
+
+
+def _extract_adult_files(payload: bytes) -> tuple[bytes, bytes]:
+    with zipfile.ZipFile(io.BytesIO(payload)) as zf:
+        names = zf.namelist()
+        data_name = next((n for n in names if n.endswith("adult.data")), None)
+        test_name = next((n for n in names if n.endswith("adult.test")), None)
+        if not data_name or not test_name:
+            raise FileNotFoundError("adult.data and adult.test must exist in UCI Adult archive")
+        return zf.read(data_name), zf.read(test_name)
+
+
+def _parse_adult(raw: bytes, test_file: bool = False) -> pd.DataFrame:
+    text = raw.decode("utf-8", errors="replace")
+    if test_file:
+        text = "\n".join(line for line in text.splitlines() if not line.lstrip().startswith("|"))
+    frame = pd.read_csv(
+        io.StringIO(text),
+        header=None,
+        names=COLUMNS,
+        skipinitialspace=True,
+        na_values=["?", " ?"],
+    )
+    return frame.dropna(how="all").reset_index(drop=True)
+
 
 def normalize_target(raw) -> pd.Series:
     s = pd.Series(raw).astype(str).str.strip().str.rstrip(".")
@@ -29,105 +72,342 @@ def normalize_target(raw) -> pd.Series:
         raise ValueError(f"Unexpected Adult target labels: {sorted(s[y.isna()].unique())}")
     return y.astype(int)
 
+
 def clean_features(X: pd.DataFrame) -> pd.DataFrame:
     frame = X.copy()
     for column in frame.select_dtypes(include=["object", "category"]).columns:
-        frame[column] = frame[column].astype("object")
-        frame[column] = frame[column].replace(r"^\s*\?\s*$", np.nan, regex=True)
         frame[column] = frame[column].map(lambda v: v.strip() if isinstance(v, str) else v)
+        frame[column] = frame[column].replace(r"^\s*\?\s*$", np.nan, regex=True)
     return frame
 
-def load_real_data():
-    ds = fetch_ucirepo(id=UCI_DATASET_ID)
-    X = clean_features(ds.data.features)
-    target = ds.data.targets
-    y = normalize_target(target.iloc[:, 0] if hasattr(target, "iloc") else target)
-    return X, y
 
-def build_pipeline(X: pd.DataFrame, seed: int = SEED):
+def load_real_data(data_path: str | Path | None = None, cache_dir: str | Path = "data/cache"):
+    cache = Path(cache_dir)
+    cache.mkdir(parents=True, exist_ok=True)
+    cached = cache / "adult.zip"
+    if data_path is not None:
+        payload = Path(data_path).read_bytes()
+        source = f"local:{data_path}"
+    elif cached.exists():
+        payload = cached.read_bytes()
+        source = f"cache:{cached}"
+    else:
+        with urllib.request.urlopen(DATA_URL, timeout=120) as response:
+            payload = response.read()
+        cached.write_bytes(payload)
+        source = DATA_URL
+
+    train_raw, test_raw = _extract_adult_files(payload)
+    frame = pd.concat([_parse_adult(train_raw), _parse_adult(test_raw, True)], ignore_index=True)
+    y = normalize_target(frame.pop("income"))
+    X = clean_features(frame)
+    return X, y, {
+        "name": "UCI Adult",
+        "uci_id": UCI_DATASET_ID,
+        "doi": DATA_DOI,
+        "license": DATA_LICENSE,
+        "source": source,
+        "canonical_source": DATA_URL,
+        "archive_sha256": hashlib.sha256(payload).hexdigest(),
+        "n_samples": int(len(X)),
+        "n_features": int(X.shape[1]),
+        "positive_rate": float(y.mean()),
+    }
+
+
+def build_preprocessor(X: pd.DataFrame) -> ColumnTransformer:
     categorical = X.select_dtypes(include=["object", "category", "bool"]).columns.tolist()
     numeric = [c for c in X.columns if c not in categorical]
-    pre = ColumnTransformer([
-        ("num", SimpleImputer(strategy="median"), numeric),
+    return ColumnTransformer([
+        ("num", Pipeline([
+            ("impute", SimpleImputer(strategy="median")),
+            ("scale", StandardScaler()),
+        ]), numeric),
         ("cat", Pipeline([
             ("impute", SimpleImputer(strategy="most_frequent")),
             ("encode", OneHotEncoder(handle_unknown="ignore")),
         ]), categorical),
     ])
-    model = RandomForestClassifier(
-        n_estimators=450, random_state=seed, n_jobs=-1,
-        class_weight="balanced_subsample"
-    )
-    return Pipeline([("preprocess", pre), ("model", model)])
 
-def explain(model, X_test, y_test, n_repeats=16, seed=SEED):
+
+def build_model(X: pd.DataFrame, family: str, seed: int):
+    if family == "logistic":
+        estimator = LogisticRegression(max_iter=3000, random_state=seed, class_weight="balanced")
+    elif family == "random_forest":
+        estimator = RandomForestClassifier(
+            n_estimators=300,
+            random_state=seed,
+            n_jobs=-1,
+            class_weight="balanced_subsample",
+            min_samples_leaf=2,
+        )
+    else:
+        raise ValueError(f"Unknown model family: {family}")
+    return Pipeline([("preprocess", build_preprocessor(X)), ("model", estimator)])
+
+
+def explanation_subset(X: pd.DataFrame, y: pd.Series, seed: int, max_n: int = EXPLANATION_SAMPLE):
+    if len(X) <= max_n:
+        return X, y
+    X_small, _, y_small, _ = train_test_split(
+        X, y, train_size=max_n, random_state=seed, stratify=y
+    )
+    return X_small, y_small
+
+
+def permutation_explanation(model, X_test, y_test, seed: int, n_repeats: int = PERMUTATION_REPEATS):
+    X_exp, y_exp = explanation_subset(X_test, y_test, seed)
     result = permutation_importance(
-        model, X_test, y_test, scoring="roc_auc",
-        n_repeats=n_repeats, random_state=seed, n_jobs=-1
+        model,
+        X_exp,
+        y_exp,
+        scoring="roc_auc",
+        n_repeats=n_repeats,
+        random_state=seed,
+        n_jobs=-1,
     )
-    rows = [
-        {
-            "feature": str(X_test.columns[i]),
-            "mean_roc_auc_drop": float(result.importances_mean[i]),
-            "std_roc_auc_drop": float(result.importances_std[i]),
-        }
-        for i in np.argsort(result.importances_mean)[::-1]
-    ]
-    return rows
+    order = np.argsort(result.importances_mean)[::-1]
+    rows = [{
+        "feature": str(X_exp.columns[i]),
+        "mean_roc_auc_drop": float(result.importances_mean[i]),
+        "std_roc_auc_drop": float(result.importances_std[i]),
+        "top_k_frequency": float(np.mean([
+            i in np.argsort(result.importances[:, r])[::-1][:TOP_K]
+            for r in range(result.importances.shape[1])
+        ])),
+    } for i in order]
 
-def run_condition(name, X_train, X_test, y_train, y_test, n_repeats=16, seed=SEED):
-    model = build_pipeline(X_train, seed)
-    model.fit(X_train, y_train)
-    probability = model.predict_proba(X_test)[:, 1]
+    top_sets = [
+        set(np.argsort(result.importances[:, r])[::-1][:TOP_K].tolist())
+        for r in range(result.importances.shape[1])
+    ]
+    jaccards = []
+    for i in range(len(top_sets)):
+        for j in range(i + 1, len(top_sets)):
+            union = top_sets[i] | top_sets[j]
+            jaccards.append(len(top_sets[i] & top_sets[j]) / len(union) if union else 1.0)
     return {
-        "condition": name,
-        "roc_auc": float(roc_auc_score(y_test, probability)),
-        "features": X_train.columns.tolist(),
-        "permutation_importance": explain(model, X_test, y_test, n_repeats, seed),
+        "n_explanation_samples": int(len(X_exp)),
+        "n_repeats": int(n_repeats),
+        "top_k": TOP_K,
+        "mean_pairwise_top_k_jaccard": float(np.mean(jaccards)) if jaccards else 1.0,
+        "ranking": rows,
     }
 
-def run_experiment(results_dir: str | Path="results", n_repeats: int=16, seed: int=SEED, make_plots: bool=True):
-    X, y = load_real_data()
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=.25, random_state=seed, stratify=y
-    )
-    lower_map = {c.lower(): c for c in X.columns}
-    protected_actual = [lower_map[p] for p in PROTECTED if p in lower_map]
-    X_train_reduced = X_train.drop(columns=protected_actual)
-    X_test_reduced = X_test.drop(columns=protected_actual)
 
-    all_features = run_condition("all_features", X_train, X_test, y_train, y_test, n_repeats, seed)
-    protected_excluded = run_condition(
-        "protected_excluded", X_train_reduced, X_test_reduced, y_train, y_test, n_repeats, seed
+def error_analysis(y_true, probability) -> dict:
+    y = np.asarray(y_true, dtype=int)
+    p = np.asarray(probability, dtype=float)
+    pred = (p >= 0.5).astype(int)
+    tn, fp, fn, tp = confusion_matrix(y, pred, labels=[0, 1]).ravel()
+    wrong = pred != y
+    confidence = np.where(pred == 1, p, 1 - p)
+    return {
+        "tn": int(tn), "fp": int(fp), "fn": int(fn), "tp": int(tp),
+        "error_rate": float(wrong.mean()),
+        "high_confidence_errors_ge_0_80": int((wrong & (confidence >= .80)).sum()),
+    }
+
+
+def subgroup_audit(y_true, probability, groups: pd.Series, min_n: int = 50) -> dict:
+    y = np.asarray(y_true, dtype=int)
+    p = np.asarray(probability, dtype=float)
+    pred = (p >= .5).astype(int)
+    out = {}
+    clean_groups = groups.fillna("<missing>").astype(str).to_numpy()
+    for group in sorted(np.unique(clean_groups)):
+        mask = clean_groups == group
+        if mask.sum() < min_n:
+            continue
+        yg, pg, pr = y[mask], p[mask], pred[mask]
+        normal = yg == 0
+        positive = yg == 1
+        out[group] = {
+            "n": int(mask.sum()),
+            "positive_rate": float(yg.mean()),
+            "roc_auc": float(roc_auc_score(yg, pg)) if len(np.unique(yg)) == 2 else None,
+            "tpr_at_0_5": float(((pr == 1) & positive).sum() / max(1, positive.sum())),
+            "fpr_at_0_5": float(((pr == 1) & normal).sum() / max(1, normal.sum())),
+        }
+    return out
+
+
+def fit_condition(X_train, X_test, y_train, y_test, family: str, seed: int, explain: bool = False):
+    model = build_model(X_train, family, seed)
+    model.fit(X_train, y_train)
+    probability = model.predict_proba(X_test)[:, 1]
+    result = {
+        "roc_auc": float(roc_auc_score(y_test, probability)),
+        "error_analysis": error_analysis(y_test, probability),
+        "probability": probability,
+    }
+    if explain:
+        result["permutation_importance"] = permutation_explanation(model, X_test, y_test, seed)
+    return result
+
+
+def paired_condition_deltas(repeated: list[dict]) -> dict:
+    rng = np.random.default_rng(20260925)
+    out = {}
+    for family in ("logistic", "random_forest"):
+        deltas = np.asarray([
+            row[family]["protected_excluded"] - row[family]["all_features"]
+            for row in repeated
+        ], dtype=float)
+        boot = []
+        for _ in range(4000):
+            idx = rng.integers(0, len(deltas), size=len(deltas))
+            boot.append(float(deltas[idx].mean()))
+        lo, hi = np.percentile(boot, [2.5, 97.5])
+        out[family] = {
+            "mean_roc_auc_delta_excluded_minus_all": float(deltas.mean()),
+            "std_delta": float(deltas.std(ddof=1)) if len(deltas) > 1 else 0.0,
+            "bootstrap_95_interval": [float(lo), float(hi)],
+            "note": "Descriptive paired-split interval; repeated holdouts are not independent replications.",
+        }
+    return out
+
+
+def run_experiment(results_dir: str | Path = "results", data_path: str | Path | None = None, quick: bool = False):
+    X, y, dataset = load_real_data(data_path=data_path)
+    protected_actual = [c for c in PROTECTED if c in X.columns]
+    seeds = (PRIMARY_SEED,) if quick else REPEATED_SEEDS
+    repeated = []
+    primary_detail = None
+
+    for seed in seeds:
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=.25, random_state=seed, stratify=y
+        )
+        reduced_train = X_train.drop(columns=protected_actual)
+        reduced_test = X_test.drop(columns=protected_actual)
+        row = {"seed": seed}
+        detail = {"seed": seed, "n_train": len(X_train), "n_test": len(X_test), "models": {}}
+        for family in ("logistic", "random_forest"):
+            all_result = fit_condition(
+                X_train, X_test, y_train, y_test, family, seed, explain=(seed == PRIMARY_SEED)
+            )
+            reduced_result = fit_condition(
+                reduced_train, reduced_test, y_train, y_test, family, seed, explain=(seed == PRIMARY_SEED)
+            )
+            row[family] = {
+                "all_features": all_result["roc_auc"],
+                "protected_excluded": reduced_result["roc_auc"],
+            }
+            if seed == PRIMARY_SEED:
+                detail["models"][family] = {
+                    "all_features": {k: v for k, v in all_result.items() if k != "probability"},
+                    "protected_excluded": {k: v for k, v in reduced_result.items() if k != "probability"},
+                    "subgroup_audit_all_features": {
+                        attr: subgroup_audit(y_test, all_result["probability"], X_test[attr])
+                        for attr in protected_actual
+                    },
+                    "subgroup_audit_protected_excluded": {
+                        attr: subgroup_audit(y_test, reduced_result["probability"], X_test[attr])
+                        for attr in protected_actual
+                    },
+                }
+        repeated.append(row)
+        if seed == PRIMARY_SEED:
+            primary_detail = detail
+
+    dummy_train, dummy_test, dummy_y_train, dummy_y_test = train_test_split(
+        X, y, test_size=.25, random_state=PRIMARY_SEED, stratify=y
     )
+    dummy = DummyClassifier(strategy="prior").fit(dummy_train, dummy_y_train)
+    dummy_auc = float(roc_auc_score(dummy_y_test, dummy.predict_proba(dummy_test)[:, 1]))
 
     results = {
         "research_bundle": True,
-        "dataset": {"name":"UCI Adult","uci_id":UCI_DATASET_ID,"doi":"10.24432/C5XW20",
-                    "n_samples":int(len(X)),"positive_rate":float(y.mean())},
-        "seed": int(seed), "n_train": int(len(X_train)), "n_test": int(len(X_test)),
-        "protected_attributes": protected_actual,
-        "conditions": {"all_features":all_features, "protected_excluded":protected_excluded},
-        "environment": {"python":platform.python_version(),"numpy":np.__version__,
-                        "pandas":pd.__version__,"scikit_learn":sklearn.__version__},
+        "status": "quick_smoke_run" if quick else "complete",
+        "dataset": dataset,
+        "protocol": {
+            "test_fraction": .25,
+            "primary_seed": PRIMARY_SEED,
+            "repeated_seeds": list(seeds),
+            "protected_attributes": protected_actual,
+            "model_families": ["logistic", "random_forest"],
+            "permutation_repeats": PERMUTATION_REPEATS,
+            "explanation_sample_max": EXPLANATION_SAMPLE,
+            "top_k_stability": TOP_K,
+        },
+        "dummy_prior_roc_auc_primary": dummy_auc,
+        "primary": primary_detail,
+        "repeated_split_performance": repeated,
+        "paired_feature_exclusion_deltas": paired_condition_deltas(repeated),
+        "environment": {
+            "python": platform.python_version(),
+            "numpy": np.__version__,
+            "pandas": pd.__version__,
+            "scikit_learn": sklearn.__version__,
+        },
     }
 
-    out=Path(results_dir)
-    out.mkdir(parents=True,exist_ok=True)
-    (out/"metrics.json").write_text(json.dumps(results,indent=2),encoding="utf-8")
-    if make_plots:
-        figdir=out/"figures"; figdir.mkdir(parents=True,exist_ok=True)
-        for key, condition in results["conditions"].items():
-            top=condition["permutation_importance"][:12][::-1]
-            plt.figure(figsize=(9,6))
-            plt.barh([r["feature"] for r in top],[r["mean_roc_auc_drop"] for r in top],
-                     xerr=[r["std_roc_auc_drop"] for r in top])
-            plt.xlabel("Mean decrease in held-out ROC-AUC")
-            plt.title(f"UCI Adult permutation importance: {key}")
-            plt.tight_layout()
-            plt.savefig(figdir/f"permutation_importance_{key}.png",dpi=160)
-            plt.close()
+    out = Path(results_dir)
+    out.mkdir(parents=True, exist_ok=True)
+    (out / "metrics.json").write_text(json.dumps(results, indent=2), encoding="utf-8")
+    write_summary(results, out / "summary.md")
+    write_figures(results, out)
+    Path("paper").mkdir(exist_ok=True)
+    Path("paper/results.md").write_text(
+        "# Results\n\n" + (out / "summary.md").read_text(encoding="utf-8").replace("# Empirical Results Summary\n\n", "", 1),
+        encoding="utf-8",
+    )
     return results
 
-if __name__=="__main__":
-    print(json.dumps(run_experiment(),indent=2))
+
+def write_summary(results: dict, path: Path) -> None:
+    p = results["primary"]
+    lines = [
+        "# Empirical Results Summary", "",
+        "Generated by `src/run_experiment.py`; numerical results should not be edited by hand.", "",
+        f"Dataset: UCI Adult, n={results['dataset']['n_samples']:,}; positive rate={results['dataset']['positive_rate']:.4f}.", "",
+        "## Primary split", "",
+        "| Model | All features ROC-AUC | Protected excluded ROC-AUC | Top-k stability (all) | Top-k stability (excluded) |",
+        "|---|---:|---:|---:|---:|",
+    ]
+    for family, d in p["models"].items():
+        a, e = d["all_features"], d["protected_excluded"]
+        lines.append(
+            f"| {family} | {a['roc_auc']:.4f} | {e['roc_auc']:.4f} | "
+            f"{a['permutation_importance']['mean_pairwise_top_k_jaccard']:.4f} | "
+            f"{e['permutation_importance']['mean_pairwise_top_k_jaccard']:.4f} |"
+        )
+    lines += [
+        "", "## Interpretation guardrail", "",
+        "Protected-feature exclusion is a governance sensitivity analysis, not a fairness certificate. Permutation importance measures predictive dependence of a fitted model on held-out data; it is not causal attribution. Group diagnostics are descriptive and are not converted into a fairness verdict.", "",
+    ]
+    path.write_text("\n".join(lines), encoding="utf-8")
+
+
+def write_figures(results: dict, results_dir: Path) -> None:
+    figdir = results_dir / "figures"
+    figdir.mkdir(parents=True, exist_ok=True)
+    for family, family_data in results["primary"]["models"].items():
+        for condition in ("all_features", "protected_excluded"):
+            ranking = family_data[condition]["permutation_importance"]["ranking"][:12][::-1]
+            fig, ax = plt.subplots(figsize=(9, 6))
+            ax.barh(
+                [r["feature"] for r in ranking],
+                [r["mean_roc_auc_drop"] for r in ranking],
+                xerr=[r["std_roc_auc_drop"] for r in ranking],
+            )
+            ax.set_xlabel("Mean decrease in held-out ROC-AUC")
+            ax.set_title(f"UCI Adult permutation importance: {family} / {condition}")
+            fig.tight_layout()
+            fig.savefig(figdir / f"importance_{family}_{condition}.png", dpi=170)
+            plt.close(fig)
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Run the UCI Adult explainability research bundle")
+    parser.add_argument("--data-path", default=None, help="Optional local UCI Adult zip")
+    parser.add_argument("--results-dir", default="results")
+    parser.add_argument("--quick", action="store_true", help="Primary split only")
+    args = parser.parse_args()
+    result = run_experiment(args.results_dir, args.data_path, args.quick)
+    print(json.dumps({"status": result["status"], "dataset": result["dataset"]}, indent=2))
+
+
+if __name__ == "__main__":
+    main()
