@@ -1,3 +1,3 @@
 # Explainable AI Research Bundle
 
-Empirical AI Engineering bundle using UCI Adult to study held-out permutation importance and the consequences of including versus excluding protected attributes from a historical income classifier. Explanations are explicitly framed as model dependence, not causal attribution.
+Empirical AI Engineering study on UCI Adult comparing logistic regression and random forest under all-feature and race/sex-excluded conditions. It uses frozen external data, duplicate-aware grouped holdouts, held-out permutation importance, explanation-stability analysis, repeated robustness checks and descriptive subgroup diagnostics.
