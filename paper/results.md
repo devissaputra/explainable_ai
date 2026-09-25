@@ -8,8 +8,19 @@ Dataset: UCI Adult, n=48,842; positive rate=0.2393.
 
 | Model | All features ROC-AUC | Protected excluded ROC-AUC | Top-k stability (all) | Top-k stability (excluded) |
 |---|---:|---:|---:|---:|
-| logistic | 0.9024 | 0.9017 | 0.8722 | 0.9722 |
-| random_forest | 0.9149 | 0.9147 | 1.0000 | 0.9481 |
+| logistic | 0.9063 | 0.9052 | 0.9241 | 1.0000 |
+| random_forest | 0.9174 | 0.9167 | 1.0000 | 1.0000 |
+
+## Frozen data and split integrity
+
+- archive SHA-256: \`7537312dd56c2b98035880805ce99e68183a30ee468aa5329d6df0fbb3cc21bb\`
+- exact duplicate predictor rows in full dataset: 57
+- exact predictor-group overlap in the primary train/test split: 0
+
+## Repeated split feature-exclusion sensitivity
+
+- logistic: mean AUC Δ excluded-minus-all = -0.0012; descriptive 95% bootstrap interval [-0.0014, -0.0009]
+- random_forest: mean AUC Δ excluded-minus-all = -0.0008; descriptive 95% bootstrap interval [-0.0010, -0.0007]
 
 ## Interpretation guardrail
 
