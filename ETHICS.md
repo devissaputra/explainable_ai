@@ -12,7 +12,15 @@ Permutation importance measures how much a fitted model's held-out ROC-AUC chang
 
 ## Subgroup diagnostics
 
-The study reports descriptive subgroup ROC-AUC, TPR and FPR where sample sizes are adequate. These values are not collapsed into a single fairness score or verdict. Any real decision context would require a context-specific legal, ethical and stakeholder analysis.
+The study reports descriptive subgroup ROC-AUC, TPR and FPR with group and class denominators where sample size is adequate. These values are not collapsed into a single fairness score or verdict. Any real decision context would require a context-specific legal, ethical and stakeholder analysis.
+
+## Duplicate-aware evaluation
+
+Exact duplicate predictor profiles are kept on one side of each train/test split. This prevents identical observed predictor vectors from inflating held-out evidence merely because one copy was seen during training. Grouping duplicates does not solve broader dependence, sampling bias or census-weight interpretation.
+
+## Benchmark boundary
+
+The study combines the distributed Adult train and test files for repeated grouped robustness analysis. It therefore does not claim direct comparability with results that use UCI's original fixed split.
 
 ## Deployment boundary
 
