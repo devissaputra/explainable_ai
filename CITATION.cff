@@ -1,10 +1,16 @@
 cff-version: 1.2.0
-message: "Please cite this repository and the original dataset source."
-title: "Explainable AI"
+message: "Please cite this repository and the original UCI Adult dataset source."
+title: "Model Dependence, Explanation Stability and Protected-Feature Governance on UCI Adult"
 type: software
 authors:
   - family-names: "Saputra"
     given-names: "Devis W."
-version: 1.0.0
+version: 2.0.0
 license: MIT
-repository-code: "https://github.com/devissaputra/REPLACE-WITH-REPOSITORY-NAME"
+repository-code: "https://github.com/devissaputra/explainable_ai"
+keywords:
+  - explainable AI
+  - permutation importance
+  - explanation stability
+  - UCI Adult
+  - responsible AI
