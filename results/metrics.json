@@ -1,11 +1,741 @@
 {
   "research_bundle": true,
-  "status": "regeneration_required_after_protocol_upgrade",
+  "status": "complete",
   "dataset": {
     "name": "UCI Adult",
     "uci_id": 2,
     "doi": "10.24432/C5XW20",
-    "license": "CC BY 4.0"
+    "license": "CC BY 4.0",
+    "source": "https://archive.ics.uci.edu/static/public/2/adult.zip",
+    "canonical_source": "https://archive.ics.uci.edu/static/public/2/adult.zip",
+    "archive_sha256": "7537312dd56c2b98035880805ce99e68183a30ee468aa5329d6df0fbb3cc21bb",
+    "n_samples": 48842,
+    "n_features": 14,
+    "positive_rate": 0.23928176569346055
   },
-  "message": "Run the current multi-model repeated-split empirical protocol. Previous breast-cancer and earlier single-model metrics are not valid evidence for this version."
+  "protocol": {
+    "test_fraction": 0.25,
+    "primary_seed": 42,
+    "repeated_seeds": [
+      13,
+      29,
+      42,
+      73,
+      101
+    ],
+    "protected_attributes": [
+      "race",
+      "sex"
+    ],
+    "model_families": [
+      "logistic",
+      "random_forest"
+    ],
+    "permutation_repeats": 16,
+    "explanation_sample_max": 4000,
+    "top_k_stability": 8
+  },
+  "dummy_prior_roc_auc_primary": 0.5,
+  "primary": {
+    "seed": 42,
+    "n_train": 36631,
+    "n_test": 12211,
+    "models": {
+      "logistic": {
+        "all_features": {
+          "roc_auc": 0.9023751275584548,
+          "error_analysis": {
+            "tn": 7375,
+            "fp": 1914,
+            "fn": 484,
+            "tp": 2438,
+            "error_rate": 0.19638031283269183,
+            "high_confidence_errors_ge_0_80": 609
+          },
+          "permutation_importance": {
+            "n_explanation_samples": 4000,
+            "n_repeats": 16,
+            "top_k": 8,
+            "mean_pairwise_top_k_jaccard": 0.8722222222222223,
+            "ranking": [
+              {
+                "feature": "marital-status",
+                "mean_roc_auc_drop": 0.11748611679133403,
+                "std_roc_auc_drop": 0.0056102708745096,
+                "top_k_frequency": 1.0
+              },
+              {
+                "feature": "education-num",
+                "mean_roc_auc_drop": 0.046925215244676584,
+                "std_roc_auc_drop": 0.0027230009143732275,
+                "top_k_frequency": 1.0
+              },
+              {
+                "feature": "capital-gain",
+                "mean_roc_auc_drop": 0.039377422393275706,
+                "std_roc_auc_drop": 0.0024022042648032664,
+                "top_k_frequency": 1.0
+              },
+              {
+                "feature": "occupation",
+                "mean_roc_auc_drop": 0.01601700512782487,
+                "std_roc_auc_drop": 0.0015902168844869975,
+                "top_k_frequency": 1.0
+              },
+              {
+                "feature": "relationship",
+                "mean_roc_auc_drop": 0.011354922873161553,
+                "std_roc_auc_drop": 0.0013057383551649936,
+                "top_k_frequency": 1.0
+              },
+              {
+                "feature": "hours-per-week",
+                "mean_roc_auc_drop": 0.011224671213821084,
+                "std_roc_auc_drop": 0.0011418744306065166,
+                "top_k_frequency": 1.0
+              },
+              {
+                "feature": "age",
+                "mean_roc_auc_drop": 0.00642806640177665,
+                "std_roc_auc_drop": 0.0013171828114368568,
+                "top_k_frequency": 0.9375
+              },
+              {
+                "feature": "sex",
+                "mean_roc_auc_drop": 0.005323406135190195,
+                "std_roc_auc_drop": 0.0013838591820527779,
+                "top_k_frequency": 0.625
+              },
+              {
+                "feature": "capital-loss",
+                "mean_roc_auc_drop": 0.004507020755448558,
+                "std_roc_auc_drop": 0.0011490648982907569,
+                "top_k_frequency": 0.4375
+              },
+              {
+                "feature": "workclass",
+                "mean_roc_auc_drop": 0.0017554249419072868,
+                "std_roc_auc_drop": 0.0005567614963798022,
+                "top_k_frequency": 0.0
+              },
+              {
+                "feature": "native-country",
+                "mean_roc_auc_drop": 0.0014665920482832759,
+                "std_roc_auc_drop": 0.0006110973170097743,
+                "top_k_frequency": 0.0
+              },
+              {
+                "feature": "fnlwgt",
+                "mean_roc_auc_drop": 0.0004792634379193264,
+                "std_roc_auc_drop": 0.0002244744058017307,
+                "top_k_frequency": 0.0
+              },
+              {
+                "feature": "race",
+                "mean_roc_auc_drop": 0.00047078602723565205,
+                "std_roc_auc_drop": 0.00034455995631104346,
+                "top_k_frequency": 0.0
+              },
+              {
+                "feature": "education",
+                "mean_roc_auc_drop": 0.00019255526241606508,
+                "std_roc_auc_drop": 0.0003613384997767792,
+                "top_k_frequency": 0.0
+              }
+            ]
+          }
+        },
+        "protected_excluded": {
+          "roc_auc": 0.9017131020337213,
+          "error_analysis": {
+            "tn": 7352,
+            "fp": 1937,
+            "fn": 490,
+            "tp": 2432,
+            "error_rate": 0.19875522070264515,
+            "high_confidence_errors_ge_0_80": 600
+          },
+          "permutation_importance": {
+            "n_explanation_samples": 4000,
+            "n_repeats": 16,
+            "top_k": 8,
+            "mean_pairwise_top_k_jaccard": 0.9722222222222224,
+            "ranking": [
+              {
+                "feature": "marital-status",
+                "mean_roc_auc_drop": 0.12305682723869737,
+                "std_roc_auc_drop": 0.005647964946599192,
+                "top_k_frequency": 1.0
+              },
+              {
+                "feature": "education-num",
+                "mean_roc_auc_drop": 0.04629966818341484,
+                "std_roc_auc_drop": 0.0025613091367365053,
+                "top_k_frequency": 1.0
+              },
+              {
+                "feature": "capital-gain",
+                "mean_roc_auc_drop": 0.03966400179798363,
+                "std_roc_auc_drop": 0.0023889849724692577,
+                "top_k_frequency": 1.0
+              },
+              {
+                "feature": "occupation",
+                "mean_roc_auc_drop": 0.01582689651051742,
+                "std_roc_auc_drop": 0.0015049314512176313,
+                "top_k_frequency": 1.0
+              },
+              {
+                "feature": "hours-per-week",
+                "mean_roc_auc_drop": 0.011992102229589019,
+                "std_roc_auc_drop": 0.0011791294655916836,
+                "top_k_frequency": 1.0
+              },
+              {
+                "feature": "relationship",
+                "mean_roc_auc_drop": 0.006874214283531251,
+                "std_roc_auc_drop": 0.0013560660457697074,
+                "top_k_frequency": 1.0
+              },
+              {
+                "feature": "age",
+                "mean_roc_auc_drop": 0.006330543986214937,
+                "std_roc_auc_drop": 0.0013281842941928546,
+                "top_k_frequency": 1.0
+              },
+              {
+                "feature": "capital-loss",
+                "mean_roc_auc_drop": 0.004679595082809837,
+                "std_roc_auc_drop": 0.0011759483366224669,
+                "top_k_frequency": 0.9375
+              },
+              {
+                "feature": "workclass",
+                "mean_roc_auc_drop": 0.0018263991118591533,
+                "std_roc_auc_drop": 0.0005288771985049659,
+                "top_k_frequency": 0.0625
+              },
+              {
+                "feature": "native-country",
+                "mean_roc_auc_drop": 0.0012753674174174959,
+                "std_roc_auc_drop": 0.000558460666409306,
+                "top_k_frequency": 0.0
+              },
+              {
+                "feature": "fnlwgt",
+                "mean_roc_auc_drop": 0.00043767047107098195,
+                "std_roc_auc_drop": 0.00021095278216200198,
+                "top_k_frequency": 0.0
+              },
+              {
+                "feature": "education",
+                "mean_roc_auc_drop": 0.00020588303971867672,
+                "std_roc_auc_drop": 0.00036975456935488976,
+                "top_k_frequency": 0.0
+              }
+            ]
+          }
+        },
+        "subgroup_audit_all_features": {
+          "race": {
+            "Amer-Indian-Eskimo": {
+              "n": 126,
+              "positive_rate": 0.0873015873015873,
+              "roc_auc": 0.8822134387351779,
+              "tpr_at_0_5": 0.6363636363636364,
+              "fpr_at_0_5": 0.13043478260869565
+            },
+            "Asian-Pac-Islander": {
+              "n": 369,
+              "positive_rate": 0.2601626016260163,
+              "roc_auc": 0.8675213675213675,
+              "tpr_at_0_5": 0.8333333333333334,
+              "fpr_at_0_5": 0.2564102564102564
+            },
+            "Black": {
+              "n": 1186,
+              "positive_rate": 0.12141652613827993,
+              "roc_auc": 0.9346809021113245,
+              "tpr_at_0_5": 0.6736111111111112,
+              "fpr_at_0_5": 0.07677543186180422
+            },
+            "Other": {
+              "n": 88,
+              "positive_rate": 0.125,
+              "roc_auc": 0.8972845336481701,
+              "tpr_at_0_5": 0.7272727272727273,
+              "fpr_at_0_5": 0.1038961038961039
+            },
+            "White": {
+              "n": 10442,
+              "positive_rate": 0.2547404711741046,
+              "roc_auc": 0.8985885105980062,
+              "tpr_at_0_5": 0.8443609022556391,
+              "fpr_at_0_5": 0.22372140837830892
+            }
+          },
+          "sex": {
+            "Female": {
+              "n": 4057,
+              "positive_rate": 0.11165886122750801,
+              "roc_auc": 0.9237938959164822,
+              "tpr_at_0_5": 0.673289183222958,
+              "fpr_at_0_5": 0.06853496115427303
+            },
+            "Male": {
+              "n": 8154,
+              "positive_rate": 0.3027961736571008,
+              "roc_auc": 0.8796072886911155,
+              "tpr_at_0_5": 0.8639125151883353,
+              "fpr_at_0_5": 0.2932277924362357
+            }
+          }
+        },
+        "subgroup_audit_protected_excluded": {
+          "race": {
+            "Amer-Indian-Eskimo": {
+              "n": 126,
+              "positive_rate": 0.0873015873015873,
+              "roc_auc": 0.8916996047430831,
+              "tpr_at_0_5": 0.8181818181818182,
+              "fpr_at_0_5": 0.21739130434782608
+            },
+            "Asian-Pac-Islander": {
+              "n": 369,
+              "positive_rate": 0.2601626016260163,
+              "roc_auc": 0.8688949938949939,
+              "tpr_at_0_5": 0.8020833333333334,
+              "fpr_at_0_5": 0.23443223443223443
+            },
+            "Black": {
+              "n": 1186,
+              "positive_rate": 0.12141652613827993,
+              "roc_auc": 0.9338878225634464,
+              "tpr_at_0_5": 0.7361111111111112,
+              "fpr_at_0_5": 0.1036468330134357
+            },
+            "Other": {
+              "n": 88,
+              "positive_rate": 0.125,
+              "roc_auc": 0.8949232585596222,
+              "tpr_at_0_5": 0.7272727272727273,
+              "fpr_at_0_5": 0.11688311688311688
+            },
+            "White": {
+              "n": 10442,
+              "positive_rate": 0.2547404711741046,
+              "roc_auc": 0.8980141177925539,
+              "tpr_at_0_5": 0.8390977443609022,
+              "fpr_at_0_5": 0.22243639167309176
+            }
+          },
+          "sex": {
+            "Female": {
+              "n": 4057,
+              "positive_rate": 0.11165886122750801,
+              "roc_auc": 0.9228671601090768,
+              "tpr_at_0_5": 0.7086092715231788,
+              "fpr_at_0_5": 0.08435072142064373
+            },
+            "Male": {
+              "n": 8154,
+              "positive_rate": 0.3027961736571008,
+              "roc_auc": 0.8789169340989216,
+              "tpr_at_0_5": 0.8550020251113811,
+              "fpr_at_0_5": 0.2872471416007036
+            }
+          }
+        }
+      },
+      "random_forest": {
+        "all_features": {
+          "roc_auc": 0.9149490440401529,
+          "error_analysis": {
+            "tn": 7825,
+            "fp": 1464,
+            "fn": 575,
+            "tp": 2347,
+            "error_rate": 0.16698059127016623,
+            "high_confidence_errors_ge_0_80": 345
+          },
+          "permutation_importance": {
+            "n_explanation_samples": 4000,
+            "n_repeats": 16,
+            "top_k": 8,
+            "mean_pairwise_top_k_jaccard": 1.0,
+            "ranking": [
+              {
+                "feature": "marital-status",
+                "mean_roc_auc_drop": 0.040166004012154574,
+                "std_roc_auc_drop": 0.0034902412413274453,
+                "top_k_frequency": 1.0
+              },
+              {
+                "feature": "capital-gain",
+                "mean_roc_auc_drop": 0.03465737181897505,
+                "std_roc_auc_drop": 0.0014821429248656763,
+                "top_k_frequency": 1.0
+              },
+              {
+                "feature": "age",
+                "mean_roc_auc_drop": 0.021998687568055383,
+                "std_roc_auc_drop": 0.002337376537766185,
+                "top_k_frequency": 1.0
+              },
+              {
+                "feature": "relationship",
+                "mean_roc_auc_drop": 0.017526756854297727,
+                "std_roc_auc_drop": 0.002634935316420772,
+                "top_k_frequency": 1.0
+              },
+              {
+                "feature": "occupation",
+                "mean_roc_auc_drop": 0.01526871803694247,
+                "std_roc_auc_drop": 0.0017193039744804184,
+                "top_k_frequency": 1.0
+              },
+              {
+                "feature": "education-num",
+                "mean_roc_auc_drop": 0.015201821608838276,
+                "std_roc_auc_drop": 0.0018419663340567291,
+                "top_k_frequency": 1.0
+              },
+              {
+                "feature": "hours-per-week",
+                "mean_roc_auc_drop": 0.011110859292667197,
+                "std_roc_auc_drop": 0.0017302650504942662,
+                "top_k_frequency": 1.0
+              },
+              {
+                "feature": "capital-loss",
+                "mean_roc_auc_drop": 0.006466804949331259,
+                "std_roc_auc_drop": 0.0005654738199500851,
+                "top_k_frequency": 1.0
+              },
+              {
+                "feature": "education",
+                "mean_roc_auc_drop": 0.003494495992824545,
+                "std_roc_auc_drop": 0.0011430259184244107,
+                "top_k_frequency": 0.0
+              },
+              {
+                "feature": "workclass",
+                "mean_roc_auc_drop": 0.003183707678619703,
+                "std_roc_auc_drop": 0.0007746225612404217,
+                "top_k_frequency": 0.0
+              },
+              {
+                "feature": "sex",
+                "mean_roc_auc_drop": 0.0018179646247739323,
+                "std_roc_auc_drop": 0.0006226139571709331,
+                "top_k_frequency": 0.0
+              },
+              {
+                "feature": "race",
+                "mean_roc_auc_drop": 0.0008902139689871691,
+                "std_roc_auc_drop": 0.00028686009969861617,
+                "top_k_frequency": 0.0
+              },
+              {
+                "feature": "native-country",
+                "mean_roc_auc_drop": 6.846313944572358e-05,
+                "std_roc_auc_drop": 0.0005491921639180116,
+                "top_k_frequency": 0.0
+              },
+              {
+                "feature": "fnlwgt",
+                "mean_roc_auc_drop": -0.0004717625390990715,
+                "std_roc_auc_drop": 0.0005001374752091218,
+                "top_k_frequency": 0.0
+              }
+            ]
+          }
+        },
+        "protected_excluded": {
+          "roc_auc": 0.9147494674211157,
+          "error_analysis": {
+            "tn": 7792,
+            "fp": 1497,
+            "fn": 579,
+            "tp": 2343,
+            "error_rate": 0.17001064613872738,
+            "high_confidence_errors_ge_0_80": 343
+          },
+          "permutation_importance": {
+            "n_explanation_samples": 4000,
+            "n_repeats": 16,
+            "top_k": 8,
+            "mean_pairwise_top_k_jaccard": 0.9481481481481481,
+            "ranking": [
+              {
+                "feature": "marital-status",
+                "mean_roc_auc_drop": 0.05069175027325161,
+                "std_roc_auc_drop": 0.0038545618743841014,
+                "top_k_frequency": 1.0
+              },
+              {
+                "feature": "capital-gain",
+                "mean_roc_auc_drop": 0.033729621163188284,
+                "std_roc_auc_drop": 0.0015109728991268222,
+                "top_k_frequency": 1.0
+              },
+              {
+                "feature": "age",
+                "mean_roc_auc_drop": 0.021692041381096004,
+                "std_roc_auc_drop": 0.0021852951978858096,
+                "top_k_frequency": 1.0
+              },
+              {
+                "feature": "relationship",
+                "mean_roc_auc_drop": 0.01823982513269401,
+                "std_roc_auc_drop": 0.0029067728334271313,
+                "top_k_frequency": 1.0
+              },
+              {
+                "feature": "occupation",
+                "mean_roc_auc_drop": 0.015672832984965454,
+                "std_roc_auc_drop": 0.0017302697780262775,
+                "top_k_frequency": 1.0
+              },
+              {
+                "feature": "education-num",
+                "mean_roc_auc_drop": 0.015374846633982926,
+                "std_roc_auc_drop": 0.0019195999452007373,
+                "top_k_frequency": 1.0
+              },
+              {
+                "feature": "hours-per-week",
+                "mean_roc_auc_drop": 0.011341273168870708,
+                "std_roc_auc_drop": 0.0016497631924567598,
+                "top_k_frequency": 1.0
+              },
+              {
+                "feature": "capital-loss",
+                "mean_roc_auc_drop": 0.005914485546937631,
+                "std_roc_auc_drop": 0.0005078433978994289,
+                "top_k_frequency": 0.875
+              },
+              {
+                "feature": "education",
+                "mean_roc_auc_drop": 0.003922519385155518,
+                "std_roc_auc_drop": 0.0012397205912763791,
+                "top_k_frequency": 0.125
+              },
+              {
+                "feature": "workclass",
+                "mean_roc_auc_drop": 0.0031579105959821663,
+                "std_roc_auc_drop": 0.0008408452830893375,
+                "top_k_frequency": 0.0
+              },
+              {
+                "feature": "native-country",
+                "mean_roc_auc_drop": 0.00027859561540596184,
+                "std_roc_auc_drop": 0.0004804081689477473,
+                "top_k_frequency": 0.0
+              },
+              {
+                "feature": "fnlwgt",
+                "mean_roc_auc_drop": -0.000712757082307891,
+                "std_roc_auc_drop": 0.0004121826219395614,
+                "top_k_frequency": 0.0
+              }
+            ]
+          }
+        },
+        "subgroup_audit_all_features": {
+          "race": {
+            "Amer-Indian-Eskimo": {
+              "n": 126,
+              "positive_rate": 0.0873015873015873,
+              "roc_auc": 0.8569169960474309,
+              "tpr_at_0_5": 0.7272727272727273,
+              "fpr_at_0_5": 0.1391304347826087
+            },
+            "Asian-Pac-Islander": {
+              "n": 369,
+              "positive_rate": 0.2601626016260163,
+              "roc_auc": 0.8939636752136753,
+              "tpr_at_0_5": 0.7708333333333334,
+              "fpr_at_0_5": 0.17582417582417584
+            },
+            "Black": {
+              "n": 1186,
+              "positive_rate": 0.12141652613827993,
+              "roc_auc": 0.9431581893793985,
+              "tpr_at_0_5": 0.6875,
+              "fpr_at_0_5": 0.06333973128598848
+            },
+            "Other": {
+              "n": 88,
+              "positive_rate": 0.125,
+              "roc_auc": 0.923258559622196,
+              "tpr_at_0_5": 0.6363636363636364,
+              "fpr_at_0_5": 0.07792207792207792
+            },
+            "White": {
+              "n": 10442,
+              "positive_rate": 0.2547404711741046,
+              "roc_auc": 0.9116143288058234,
+              "tpr_at_0_5": 0.8116541353383459,
+              "fpr_at_0_5": 0.1706502184528399
+            }
+          },
+          "sex": {
+            "Female": {
+              "n": 4057,
+              "positive_rate": 0.11165886122750801,
+              "roc_auc": 0.9313811242352745,
+              "tpr_at_0_5": 0.6534216335540839,
+              "fpr_at_0_5": 0.04772475027746948
+            },
+            "Male": {
+              "n": 8154,
+              "positive_rate": 0.3027961736571008,
+              "roc_auc": 0.896681560229876,
+              "tpr_at_0_5": 0.8307006885378696,
+              "fpr_at_0_5": 0.22726473175021988
+            }
+          }
+        },
+        "subgroup_audit_protected_excluded": {
+          "race": {
+            "Amer-Indian-Eskimo": {
+              "n": 126,
+              "positive_rate": 0.0873015873015873,
+              "roc_auc": 0.866403162055336,
+              "tpr_at_0_5": 0.7272727272727273,
+              "fpr_at_0_5": 0.1826086956521739
+            },
+            "Asian-Pac-Islander": {
+              "n": 369,
+              "positive_rate": 0.2601626016260163,
+              "roc_auc": 0.8922466422466422,
+              "tpr_at_0_5": 0.7708333333333334,
+              "fpr_at_0_5": 0.19413919413919414
+            },
+            "Black": {
+              "n": 1186,
+              "positive_rate": 0.12141652613827993,
+              "roc_auc": 0.9413187779910429,
+              "tpr_at_0_5": 0.7013888888888888,
+              "fpr_at_0_5": 0.08061420345489444
+            },
+            "Other": {
+              "n": 88,
+              "positive_rate": 0.125,
+              "roc_auc": 0.9208972845336482,
+              "tpr_at_0_5": 0.7272727272727273,
+              "fpr_at_0_5": 0.07792207792207792
+            },
+            "White": {
+              "n": 10442,
+              "positive_rate": 0.2547404711741046,
+              "roc_auc": 0.9116202224914638,
+              "tpr_at_0_5": 0.8090225563909774,
+              "fpr_at_0_5": 0.17129272680544846
+            }
+          },
+          "sex": {
+            "Female": {
+              "n": 4057,
+              "positive_rate": 0.11165886122750801,
+              "roc_auc": 0.9348381611797537,
+              "tpr_at_0_5": 0.6754966887417219,
+              "fpr_at_0_5": 0.05327413984461709
+            },
+            "Male": {
+              "n": 8154,
+              "positive_rate": 0.3027961736571008,
+              "roc_auc": 0.8951326439049135,
+              "tpr_at_0_5": 0.8250303766707169,
+              "fpr_at_0_5": 0.22955145118733508
+            }
+          }
+        }
+      }
+    }
+  },
+  "repeated_split_performance": [
+    {
+      "seed": 13,
+      "logistic": {
+        "all_features": 0.9046287001715172,
+        "protected_excluded": 0.9034418511396425
+      },
+      "random_forest": {
+        "all_features": 0.9154340959098103,
+        "protected_excluded": 0.915225474420924
+      }
+    },
+    {
+      "seed": 29,
+      "logistic": {
+        "all_features": 0.9061182852341524,
+        "protected_excluded": 0.9057750222916434
+      },
+      "random_forest": {
+        "all_features": 0.9167467257386933,
+        "protected_excluded": 0.9162582843455076
+      }
+    },
+    {
+      "seed": 42,
+      "logistic": {
+        "all_features": 0.9023751275584548,
+        "protected_excluded": 0.9017131020337213
+      },
+      "random_forest": {
+        "all_features": 0.9149490440401529,
+        "protected_excluded": 0.9147494674211157
+      }
+    },
+    {
+      "seed": 73,
+      "logistic": {
+        "all_features": 0.9065327834347207,
+        "protected_excluded": 0.906198067986326
+      },
+      "random_forest": {
+        "all_features": 0.9166538270041719,
+        "protected_excluded": 0.9163345670462123
+      }
+    },
+    {
+      "seed": 101,
+      "logistic": {
+        "all_features": 0.907132139616832,
+        "protected_excluded": 0.9056732076365376
+      },
+      "random_forest": {
+        "all_features": 0.9177868305073917,
+        "protected_excluded": 0.9169425259864082
+      }
+    }
+  ],
+  "paired_feature_exclusion_deltas": {
+    "logistic": {
+      "mean_roc_auc_delta_excluded_minus_all": -0.0007971569855612648,
+      "std_delta": 0.0005069365157331985,
+      "bootstrap_95_interval": [
+        -0.0011907175098143652,
+        -0.0004035964613081644
+      ],
+      "note": "Descriptive paired-split interval; repeated holdouts are not independent replications."
+    },
+    "random_forest": {
+      "mean_roc_auc_delta_excluded_minus_all": -0.00041204079601044887,
+      "std_delta": 0.0002682432217659642,
+      "bootstrap_95_interval": [
+        -0.0006441863150346671,
+        -0.00022713123476130191
+      ],
+      "note": "Descriptive paired-split interval; repeated holdouts are not independent replications."
+    }
+  },
+  "environment": {
+    "python": "3.11.16",
+    "numpy": "2.4.6",
+    "pandas": "2.3.3",
+    "scikit_learn": "1.9.1"
+  }
 }
