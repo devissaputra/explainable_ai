@@ -1,16 +1,37 @@
-# Held-Out Permutation Importance and Protected-Feature Governance on UCI Adult
+# Model Dependence, Explanation Stability and Protected-Feature Governance on UCI Adult
 
-## Status
-Research-bundle manuscript scaffold. Numerical results are produced by the current real-data runner.
+## Abstract
 
-## Questions
-Which raw features drive held-out ROC-AUC in a random-forest Adult classifier, and how does the explanation/performance profile change when race and sex are excluded from prediction?
+Global feature-importance plots are often presented as if they were stable properties of a dataset. This study instead treats explanations as model- and sample-dependent empirical objects. Logistic regression and random forest are evaluated on UCI Adult with and without race and sex. Held-out permutation importance, repeated permutation stability, repeated train/test splits, subgroup diagnostics and error analysis are used to distinguish predictive dependence from causal or fairness claims.
 
-## Design
-A fixed stratified holdout is used. Preprocessing is train-only. Permutation importance is computed on the untouched test set with ROC-AUC as the scoring function and repeated shuffles for uncertainty.
+## Research questions
 
-## Interpretation
-Permutation importance is model dependence, not causal attribution. Protected-feature exclusion is a feature-governance comparison, not proof of fairness because proxies, structural inequality and measurement choices remain.
+Which raw features support held-out discrimination in each model family? How stable are top features under permutation repeats? How do performance and explanations change when race and sex are excluded? What subgroup and error patterns remain?
 
-## Data
-UCI Adult, dataset 2, DOI 10.24432/C5XW20, CC BY 4.0.
+## Data and design
+
+The study uses UCI Adult dataset 2. A fixed stratified 75/25 primary split uses seed 42, with four additional fixed seeds for robustness. All preprocessing is train-only.
+
+## Models and conditions
+
+Logistic regression and random forest are each fitted under all-feature and protected-excluded conditions. A class-prior dummy serves as a minimal discrimination baseline.
+
+## Explanation analysis
+
+Permutation importance is evaluated on held-out data with ROC-AUC scoring and 16 repeats. The study records each feature's mean and standard deviation of ROC-AUC drop, top-8 frequency across repeats, and mean pairwise Jaccard similarity of top-8 sets.
+
+## Governance and subgroup analysis
+
+Race and sex exclusion is treated as a controlled sensitivity analysis, not a fairness certification. Both feature conditions are audited descriptively across held-out race and sex groups where sample size is adequate.
+
+## Error analysis
+
+False positives, false negatives, overall error rate and high-confidence errors are reported for the primary split.
+
+## Results
+
+Generated numerical evidence is written to `paper/results.md` and `results/metrics.json`; this methods file deliberately avoids hand-entered performance claims.
+
+## Limitations
+
+The dataset is historical, socioeconomic variables are entangled, explanations are model-dependent, repeated holdouts are dependent, and subgroup summaries do not resolve normative fairness questions.
