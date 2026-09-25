@@ -1,25 +1,35 @@
 # Dataset Card — UCI Adult
 
 ## Source
+
 UCI Machine Learning Repository, dataset 2: **Adult**  
 DOI: https://doi.org/10.24432/C5XW20  
 Dataset page: https://archive.ics.uci.edu/dataset/2/adult  
-License reported by UCI: CC BY 4.0.
+Canonical archive: https://archive.ics.uci.edu/static/public/2/adult.zip  
+License reported by UCI: **CC BY 4.0**.
 
-## Scale
-UCI reports 48,842 records and 14 predictors derived from census data.
+## Data used
+
+The runner combines `adult.data` and `adult.test`, removes the documentation/header line from the test file, and normalizes target labels with and without the trailing period. The generated manifest stores the SHA-256 hash of the exact archive used.
 
 ## Outcome
-The target indicates whether reported annual income exceeds USD 50K. The runner normalizes both forms with and without a trailing period.
 
-## Missing values
-The runner converts `?` and surrounding whitespace to missing values. Numerical columns use median imputation; categorical columns use most-frequent imputation.
+The target indicates whether the recorded annual income category exceeds USD 50K. This historical binary label is used as a benchmark outcome, not as a statement of a person's worth or opportunity.
 
-## Protected attributes
-The experiment explicitly identifies `race` and `sex` as protected/social attributes for a feature-governance comparison. One condition includes them because the study asks how the historical classifier depends on them; the second excludes them. Neither condition is presented as a deployment recommendation.
+## Missing values and preprocessing
+
+Question-mark values are treated as missing. Numeric columns use median imputation and standardization. Categorical columns use most-frequent imputation and one-hot encoding. All preprocessing is fitted inside the training pipeline.
+
+## Protected/social attributes
+
+The study explicitly identifies `race` and `sex` for a controlled feature-governance comparison. One condition includes them to measure model dependence. A second condition removes them before fitting. Held-out group labels are still available for descriptive subgroup auditing of both conditions.
+
+Removing these columns does not remove proxies, structural inequity, selection effects or measurement limitations.
 
 ## Split
-Fixed stratified 75/25 train/test split, seed 42. All preprocessing and model fitting happen inside the training pipeline. Permutation importance is calculated on the held-out test data.
+
+The primary split is stratified 75/25 with seed 42. Robustness uses four additional fixed seeds: 13, 29, 73 and 101. Explanations are calculated only on held-out observations.
 
 ## Limitations
-Adult is an old US census-derived benchmark. Income threshold classification compresses socioeconomic outcomes into a binary label and cannot support broad claims about people, worth, opportunity or current labor markets.
+
+Adult is an older US census-derived benchmark. The binary income threshold compresses complex socioeconomic circumstances and is not representative of current labor markets, other countries, or a justified real-world automated decision by default.
