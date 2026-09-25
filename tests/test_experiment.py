@@ -1,4 +1,5 @@
 from pathlib import Path
+import json
 import hashlib
 import io
 import zipfile
@@ -8,6 +9,7 @@ import pandas as pd
 import pytest
 
 from src.run_experiment import (
+    EXPECTED_ARCHIVE_SHA256,
     _extract_adult_files,
     _parse_adult,
     build_model,
@@ -99,3 +101,20 @@ def test_subgroup_audit_reports_class_denominators():
     groups = pd.Series(["A", "A", "A", "B", "B", "B"])
     out = subgroup_audit(y, p, groups, min_n=3)
     assert out["A"]["positive_n"] + out["A"]["negative_n"] == out["A"]["n"]
+
+
+def test_committed_empirical_evidence_matches_frozen_protocol():
+    root = Path(__file__).resolve().parents[1]
+    metrics = json.loads((root / "results" / "metrics.json").read_text(encoding="utf-8"))
+    assert metrics["research_bundle"] is True
+    assert metrics["status"] == "complete"
+    assert metrics["dataset"]["archive_sha256"] == EXPECTED_ARCHIVE_SHA256
+    assert metrics["dataset"]["n_samples"] == 48842
+    assert metrics["dataset"]["n_features"] == 14
+    assert metrics["dataset"]["duplicate_predictor_rows"] > 0
+    assert metrics["primary"]["exact_predictor_group_overlap"] == 0
+    assert metrics["protocol"]["repeated_seeds"] == [13, 29, 42, 73, 101]
+    assert len(metrics["repeated_split_performance"]) == 5
+    generated_tex = (root / "paper" / "results.tex").read_text(encoding="utf-8")
+    assert "Generated empirical results" in generated_tex
+    assert "Primary grouped holdout results" in generated_tex
