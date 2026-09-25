@@ -485,6 +485,18 @@ def write_summary(results: dict, path: Path) -> None:
             f"{e['permutation_importance']['mean_pairwise_top_k_jaccard']:.4f} |"
         )
     lines += [
+        "", "## Top held-out permutation features", "",
+        "| Model | Condition | Top raw features by mean ROC-AUC drop |",
+        "|---|---|---|",
+    ]
+    for family, d in p["models"].items():
+        for condition in ("all_features", "protected_excluded"):
+            ranking = d[condition]["permutation_importance"]["ranking"][:8]
+            feature_text = ", ".join(
+                f"{r['feature']} ({r['mean_roc_auc_drop']:.4f})" for r in ranking
+            )
+            lines.append(f"| {family} | {condition} | {feature_text} |")
+    lines += [
         "", "## Frozen data and split integrity", "",
         f"- archive SHA-256: \`{results['dataset']['archive_sha256']}\`",
         f"- exact duplicate predictor rows in full dataset: {results['dataset']['duplicate_predictor_rows']}",
@@ -497,8 +509,24 @@ def write_summary(results: dict, path: Path) -> None:
             f"- {family}: mean AUC Δ excluded-minus-all = {d['mean_roc_auc_delta_excluded_minus_all']:.4f}; "
             f"descriptive 95% bootstrap interval [{lo:.4f}, {hi:.4f}]"
         )
+    lines += ["", "## Protected-excluded subgroup diagnostics", ""]
+    for family, d in p["models"].items():
+        lines += [
+            f"### {family}", "",
+            "| Attribute | Group | n | Positive n | Negative n | ROC-AUC | TPR @ 0.5 | FPR @ 0.5 |",
+            "|---|---|---:|---:|---:|---:|---:|---:|",
+        ]
+        for attribute, groups in d["subgroup_audit_protected_excluded"].items():
+            for group, metrics in groups.items():
+                fmt = lambda x: "NA" if x is None else f"{x:.4f}"
+                lines.append(
+                    f"| {attribute} | {group} | {metrics['n']} | {metrics['positive_n']} | "
+                    f"{metrics['negative_n']} | {fmt(metrics['roc_auc'])} | "
+                    f"{fmt(metrics['tpr_at_0_5'])} | {fmt(metrics['fpr_at_0_5'])} |"
+                )
+        lines.append("")
     lines += [
-        "", "## Interpretation guardrail", "",
+        "## Interpretation guardrail", "",
         "Protected-feature exclusion is a governance sensitivity analysis, not a fairness certificate. Permutation importance measures predictive dependence of a fitted model on held-out data; it is not causal attribution. Group diagnostics are descriptive and are not converted into a fairness verdict.", "",
     ]
     path.write_text("\n".join(lines), encoding="utf-8")
