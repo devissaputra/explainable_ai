@@ -1,21 +1,16 @@
-# Explainable AI with Held-Out Permutation Importance
+# Held-Out Permutation Importance and Protected-Feature Governance on UCI Adult
 
-## Abstract
+## Status
+Research-bundle manuscript scaffold. Numerical results are produced by the current real-data runner.
 
-This experiment explains a Random Forest classifier on the Wisconsin Diagnostic Breast Cancer benchmark using held-out permutation importance. The explanation metric is explicitly aligned with the evaluation metric: both use ROC-AUC.
+## Questions
+Which raw features drive held-out ROC-AUC in a random-forest Adult classifier, and how does the explanation/performance profile change when race and sex are excluded from prediction?
 
-## Method
-
-The model uses 450 trees and a stratified 75/25 split with seed 42. Held-out ROC-AUC is 0.9945. Each feature is permuted 16 times on the test set, and the decrease in ROC-AUC is recorded.
-
-## Results
-
-The largest mean ROC-AUC decreases are observed for worst area (0.00485), worst concave points (0.00376), worst perimeter (0.00375), and mean concave points (0.00217). Standard deviations across repeats are retained because several effects are small and overlapping.
+## Design
+A fixed stratified holdout is used. Preprocessing is train-only. Permutation importance is computed on the untouched test set with ROC-AUC as the scoring function and repeated shuffles for uncertainty.
 
 ## Interpretation
+Permutation importance is model dependence, not causal attribution. Protected-feature exclusion is a feature-governance comparison, not proof of fairness because proxies, structural inequality and measurement choices remain.
 
-Permutation importance measures dependence of this fitted model on a feature under held-out shuffling. It does not establish biological causality. Correlated predictors can substitute for one another and reduce apparent individual importance.
-
-## Limitations
-
-A stronger study would evaluate explanation stability across splits and models, grouped or conditional permutation importance, SHAP as a comparison, calibration, and external validation.
+## Data
+UCI Adult, dataset 2, DOI 10.24432/C5XW20, CC BY 4.0.

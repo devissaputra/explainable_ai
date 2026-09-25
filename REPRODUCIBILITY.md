@@ -1,26 +1,21 @@
-# Reproducing the experiment
+# Reproducibility
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+pytest -q
 python src/run_experiment.py
 ```
 
-The train/test split, Random Forest, and permutation procedure use seed 42. Feature importance is computed on the held-out test set with 16 repeats.
+Frozen defaults:
+- UCI dataset 2
+- seed 42
+- test fraction 0.25
+- Random Forest trees 450
+- permutation repeats 16
+- permutation scoring: ROC-AUC
 
-The crucial scoring choice is explicit:
+Unit tests are offline. The empirical runner requires UCI network access.
 
-```python
-permutation_importance(..., scoring="roc_auc")
-```
-
-This aligns the explanation with the model's reported discrimination metric.
-
-Outputs:
-
-- `results/metrics.json`
-- `results/figures/permutation_importance.png`
-- `results/figures/roc_curve.png`
-
-CI uses two permutation repeats for smoke testing so it exercises the real code path without paying the full runtime cost.
+The previous Wisconsin breast-cancer metrics are not valid evidence for this bundle and were removed.

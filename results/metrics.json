@@ -1,58 +1,8 @@
 {
-  "seed": 42,
-  "n_repeats": 16,
-  "roc_auc": 0.9945492662473795,
-  "importance_scoring": "roc_auc",
-  "top_features": [
-    {
-      "feature": "worst area",
-      "mean_importance": 0.00485455974842771,
-      "std_importance": 0.0024738053062472714
-    },
-    {
-      "feature": "worst concave points",
-      "mean_importance": 0.0037604821802935395,
-      "std_importance": 0.0020260982807562117
-    },
-    {
-      "feature": "worst perimeter",
-      "mean_importance": 0.003747379454926654,
-      "std_importance": 0.002421275874066089
-    },
-    {
-      "feature": "mean concave points",
-      "mean_importance": 0.002168501048218037,
-      "std_importance": 0.001127576878626734
-    },
-    {
-      "feature": "worst texture",
-      "mean_importance": 0.0017557651991614506,
-      "std_importance": 0.0006402930672363875
-    },
-    {
-      "feature": "mean texture",
-      "mean_importance": 0.0010613207547170087,
-      "std_importance": 0.0006166638692741175
-    },
-    {
-      "feature": "worst concavity",
-      "mean_importance": 0.0009564989517820005,
-      "std_importance": 0.0007146692947219306
-    },
-    {
-      "feature": "mean concavity",
-      "mean_importance": 0.0008582285115304455,
-      "std_importance": 0.0006080779893900753
-    },
-    {
-      "feature": "worst smoothness",
-      "mean_importance": 0.0007206498951782547,
-      "std_importance": 0.00042396985553885575
-    },
-    {
-      "feature": "compactness error",
-      "mean_importance": 0.0005241090146750962,
-      "std_importance": 0.00025675993110936193
-    }
-  ]
+  "research_bundle": true,
+  "status": "regenerate_required",
+  "message": "Run src/run_experiment.py on UCI Adult. Previous breast-cancer metrics were intentionally removed.",
+  "dataset": "UCI Adult",
+  "uci_id": 2,
+  "doi": "10.24432/C5XW20"
 }

@@ -1,5 +1,3 @@
-# Quick Description
+# Explainable AI Research Bundle
 
-A held-out permutation-importance experiment where the explanation metric is explicitly ROC-AUC, matching the classifier's evaluation metric. Importance means and variability across 16 shuffles are retained.
-
-**Main ideas:** explainable AI, permutation importance, ROC-AUC, held-out explanations, correlated-feature caveats
+Empirical AI Engineering bundle using UCI Adult to study held-out permutation importance and the consequences of including versus excluding protected attributes from a historical income classifier. Explanations are explicitly framed as model dependence, not causal attribution.

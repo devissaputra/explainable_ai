@@ -1,17 +1,12 @@
 \documentclass{article}
-\usepackage[margin=1in]{geometry}
-\title{Explainable AI with Held-Out Permutation Importance}
-\author{Devis W. Saputra}
-\date{}
+\title{Held-Out Permutation Importance and Protected-Feature Governance on UCI Adult}
+\author{Devis Wawan Saputra}
 \begin{document}
 \maketitle
-\begin{abstract}
-A Random Forest classifier is explained with held-out permutation importance scored by ROC-AUC, matching the model's evaluation metric.
-\end{abstract}
-\section{Method}
-The model uses 450 trees and a stratified 75/25 split. Each feature is shuffled 16 times on held-out data. Importance is the resulting decrease in ROC-AUC.
-\section{Results}
-Held-out ROC-AUC is 0.9945. The largest mean permutation effects include worst area, worst concave points, and worst perimeter.
-\section{Interpretation}
-Permutation importance measures model dependence, not causality. Correlated features can substitute for one another.
+\section{Research question}
+We study held-out permutation importance and compare all-feature prediction with a protected-feature-excluded condition.
+\section{Data}
+UCI Adult, dataset 2, DOI 10.24432/C5XW20.
+\section{Interpretation boundary}
+Permutation importance measures fitted-model dependence and is not causal attribution or fairness certification.
 \end{document}
