@@ -1,8 +1,11 @@
 {
   "research_bundle": true,
-  "status": "regenerate_required",
-  "message": "Run src/run_experiment.py on UCI Adult. Previous breast-cancer metrics were intentionally removed.",
-  "dataset": "UCI Adult",
-  "uci_id": 2,
-  "doi": "10.24432/C5XW20"
+  "status": "regeneration_required_after_protocol_upgrade",
+  "dataset": {
+    "name": "UCI Adult",
+    "uci_id": 2,
+    "doi": "10.24432/C5XW20",
+    "license": "CC BY 4.0"
+  },
+  "message": "Run the current multi-model repeated-split empirical protocol. Previous breast-cancer and earlier single-model metrics are not valid evidence for this version."
 }
