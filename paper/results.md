@@ -11,6 +11,15 @@ Dataset: UCI Adult, n=48,842; positive rate=0.2393.
 | logistic | 0.9063 | 0.9052 | 0.9241 | 1.0000 |
 | random_forest | 0.9174 | 0.9167 | 1.0000 | 1.0000 |
 
+## Top held-out permutation features
+
+| Model | Condition | Top raw features by mean ROC-AUC drop |
+|---|---|---|
+| logistic | all_features | marital-status (0.1174), capital-gain (0.0392), education-num (0.0387), occupation (0.0151), relationship (0.0111), hours-per-week (0.0110), age (0.0063), capital-loss (0.0058) |
+| logistic | protected_excluded | marital-status (0.1160), education-num (0.0404), capital-gain (0.0395), occupation (0.0154), hours-per-week (0.0117), relationship (0.0082), age (0.0063), capital-loss (0.0060) |
+| random_forest | all_features | marital-status (0.0460), capital-gain (0.0342), relationship (0.0201), age (0.0166), occupation (0.0154), education-num (0.0148), hours-per-week (0.0106), capital-loss (0.0073) |
+| random_forest | protected_excluded | marital-status (0.0630), capital-gain (0.0354), relationship (0.0187), age (0.0168), education-num (0.0157), occupation (0.0155), hours-per-week (0.0108), capital-loss (0.0069) |
+
 ## Frozen data and split integrity
 
 - archive SHA-256: \`7537312dd56c2b98035880805ce99e68183a30ee468aa5329d6df0fbb3cc21bb\`
@@ -21,6 +30,32 @@ Dataset: UCI Adult, n=48,842; positive rate=0.2393.
 
 - logistic: mean AUC Δ excluded-minus-all = -0.0012; descriptive 95% bootstrap interval [-0.0014, -0.0009]
 - random_forest: mean AUC Δ excluded-minus-all = -0.0008; descriptive 95% bootstrap interval [-0.0010, -0.0007]
+
+## Protected-excluded subgroup diagnostics
+
+### logistic
+
+| Attribute | Group | n | Positive n | Negative n | ROC-AUC | TPR @ 0.5 | FPR @ 0.5 |
+|---|---|---:|---:|---:|---:|---:|---:|
+| race | Amer-Indian-Eskimo | 141 | 13 | 128 | 0.8462 | 0.7692 | 0.1406 |
+| race | Asian-Pac-Islander | 359 | 108 | 251 | 0.9209 | 0.8704 | 0.1673 |
+| race | Black | 1144 | 130 | 1014 | 0.9338 | 0.8308 | 0.1075 |
+| race | Other | 107 | 16 | 91 | 0.8970 | 0.7500 | 0.1099 |
+| race | White | 10459 | 2655 | 7804 | 0.8997 | 0.8508 | 0.2217 |
+| sex | Female | 4056 | 439 | 3617 | 0.9371 | 0.7449 | 0.0744 |
+| sex | Male | 8154 | 2483 | 5671 | 0.8790 | 0.8683 | 0.2892 |
+
+### random_forest
+
+| Attribute | Group | n | Positive n | Negative n | ROC-AUC | TPR @ 0.5 | FPR @ 0.5 |
+|---|---|---:|---:|---:|---:|---:|---:|
+| race | Amer-Indian-Eskimo | 141 | 13 | 128 | 0.8438 | 0.5385 | 0.1172 |
+| race | Asian-Pac-Islander | 359 | 108 | 251 | 0.9313 | 0.8241 | 0.1434 |
+| race | Black | 1144 | 130 | 1014 | 0.9482 | 0.7923 | 0.0809 |
+| race | Other | 107 | 16 | 91 | 0.9093 | 0.6875 | 0.1099 |
+| race | White | 10459 | 2655 | 7804 | 0.9118 | 0.8237 | 0.1766 |
+| sex | Female | 4056 | 439 | 3617 | 0.9455 | 0.7062 | 0.0489 |
+| sex | Male | 8154 | 2483 | 5671 | 0.8943 | 0.8405 | 0.2370 |
 
 ## Interpretation guardrail
 
