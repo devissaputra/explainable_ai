@@ -170,8 +170,8 @@
             "ranking": [
               {
                 "feature": "marital-status",
-                "mean_roc_auc_drop": 0.11598653795768127,
-                "std_roc_auc_drop": 0.004646286555933905,
+                "mean_roc_auc_drop": 0.11598655941948047,
+                "std_roc_auc_drop": 0.004646288061444747,
                 "top_k_frequency": 1.0
               },
               {
@@ -733,7 +733,7 @@
     {
       "seed": 29,
       "logistic": {
-        "all_features": 0.9034491320438323,
+        "all_features": 0.9034490583664697,
         "protected_excluded": 0.9027554228380665
       },
       "random_forest": {
@@ -777,11 +777,11 @@
   ],
   "paired_feature_exclusion_deltas": {
     "logistic": {
-      "mean_roc_auc_delta_excluded_minus_all": -0.0011581215518958964,
-      "std_delta": 0.00035079404784459203,
+      "mean_roc_auc_delta_excluded_minus_all": -0.0011581068164233876,
+      "std_delta": 0.00035081843370504716,
       "bootstrap_95_interval": [
         -0.0014264718716910485,
-        -0.0008897712321007445
+        -0.0008897417611557268
       ],
       "note": "Descriptive paired-split interval; repeated holdouts are not independent replications."
     },
