@@ -1,0 +1,58 @@
+{
+  "question": "Do explanations change with the model and feature policy?",
+  "data": "UCI Adult: 48,842 records; exact duplicate predictor profiles remain within the same partition.",
+  "method": "Compare logistic regression and random forest, with and without race and sex; permute raw features on held-out observations.",
+  "formula": "Importance(j) = AUC(original) - mean AUC(permuted feature j).",
+  "interpretation": "Permutation importance measures dependence of a fitted predictor. Correlated predictors can redistribute importance, and shuffled combinations may be unrealistic. Removing protected attributes does not remove their proxies or establish fairness.",
+  "status": "RECORDED EXTERNAL-DATA STUDY | full experiment not rerun in this review",
+  "source": "results/metrics.json",
+  "rows": [
+    {
+      "label": "logistic / all_features",
+      "path": [
+        "primary",
+        "models",
+        "logistic",
+        "all_features",
+        "roc_auc"
+      ],
+      "unit": "ROC-AUC ↑"
+    },
+    {
+      "label": "logistic / protected_excluded",
+      "path": [
+        "primary",
+        "models",
+        "logistic",
+        "protected_excluded",
+        "roc_auc"
+      ],
+      "unit": "ROC-AUC ↑"
+    },
+    {
+      "label": "random_forest / all_features",
+      "path": [
+        "primary",
+        "models",
+        "random_forest",
+        "all_features",
+        "roc_auc"
+      ],
+      "unit": "ROC-AUC ↑"
+    },
+    {
+      "label": "random_forest / protected_excluded",
+      "path": [
+        "primary",
+        "models",
+        "random_forest",
+        "protected_excluded",
+        "roc_auc"
+      ],
+      "unit": "ROC-AUC ↑"
+    }
+  ],
+  "table_title": "Selected recorded values (units and context shown)",
+  "evidence_note": "Selected committed results; source values were not independently retrained in this review.",
+  "finding": "On the primary grouped holdout, random-forest ROC-AUC is 0.9174 with all features and 0.9167 after excluding race and sex; logistic regression scores 0.9063 and 0.9052. Marital status leads the permutation rankings, but its importance differs markedly between models. Subgroup diagnostics remain necessary after exclusion, so the study supports inspection of model dependence rather than causal attribution or a fairness verdict."
+}

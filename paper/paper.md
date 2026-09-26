@@ -43,3 +43,33 @@ Adult is historical and census-derived; socioeconomic predictors are entangled; 
 - Becker, B., & Kohavi, R. (1996). *Adult* [Dataset]. UCI Machine Learning Repository. DOI: 10.24432/C5XW20.
 - Breiman, L. (2001). Random Forests. *Machine Learning*, 45, 5–32. DOI: 10.1023/A:1010933404324.
 - Fisher, A., Rudin, C., & Dominici, F. (2019). All Models Are Wrong, but Many Are Useful. *Journal of Machine Learning Research*, 20(177), 1–81.
+
+
+## Calculation definitions and evidence audit
+
+Importance(j) = AUC(original) - mean AUC(permuted feature j).
+
+Permutation importance measures dependence of a fitted predictor. Correlated predictors can redistribute importance, and shuffled combinations may be unrealistic. Removing protected attributes does not remove their proxies or establish fairness.
+
+On the primary grouped holdout, random-forest ROC-AUC is 0.9174 with all features and 0.9167 after excluding race and sex; logistic regression scores 0.9063 and 0.9052. Marital status leads the permutation rankings, but its importance differs markedly between models. Subgroup diagnostics remain necessary after exclusion, so the study supports inspection of model dependence rather than causal attribution or a fairness verdict.
+
+The [calculation guide](../CALCULATIONS.md) provides exact evidence paths and a function-level implementation map.
+
+![Study design](../assets/review_overview.svg)
+
+![Calculation and selected evidence](../assets/review_calculations.svg)
+
+### Selected evidence and interpretation
+
+| Quantity | Value | Unit / meaning | JSON path |
+|---|---:|---|---|
+| logistic / all_features | 0.9063071122512927 | ROC-AUC ↑ | `primary.models.logistic.all_features.roc_auc` |
+| logistic / protected_excluded | 0.9051812271219376 | ROC-AUC ↑ | `primary.models.logistic.protected_excluded.roc_auc` |
+| random_forest / all_features | 0.9173915316754124 | ROC-AUC ↑ | `primary.models.random_forest.all_features.roc_auc` |
+| random_forest / protected_excluded | 0.9167075479846082 | ROC-AUC ↑ | `primary.models.random_forest.protected_excluded.roc_auc` |
+
+These values are read from `results/metrics.json`. They must be interpreted with the split, data status and limitations above. The complete data/model experiment was not rerun in this review. Stored empirical results were inspected, not independently reproduced from raw data.
+
+### Reproduction and claim boundaries
+
+The existing suite requires unavailable dependencies; no full-suite pass is claimed. The figure generator can be checked with `python scripts/build_review_figures.py --check`. This verifies the displayed calculation evidence, not an independent replication of the complete scientific experiment. The manuscript is a working report, not a peer-reviewed publication.
